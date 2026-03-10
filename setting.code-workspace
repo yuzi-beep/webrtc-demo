@@ -1,0 +1,22 @@
+{
+  "folders": [
+    {
+      "name": "GLOBAL (Root/Configs)",
+      "path": "."
+    },
+    {
+      "name": "FRONTEND (Vite)",
+      "path": "client"
+    },
+    {
+      "name": "BACKEND (NestJS)",
+      "path": "server"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "client/": true,
+      "server/": true,
+    }
+  }
+}
