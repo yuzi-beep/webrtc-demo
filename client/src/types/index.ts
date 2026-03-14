@@ -20,11 +20,15 @@ export type WebRTCTransportMessage =
       };
     };
 
-export type WebRTCInternalMessage = {
-  type: "CHAT_SEND";
-  senderId: string;
-  payload: { text: string; senderName: string; timestamp: number };
-};
+export type WebRTCInternalMessage =
+  | {
+      type: "CHAT_SEND";
+      senderId: string;
+      payload: { text: string; senderName: string; timestamp: number };
+    }
+  | {
+      type: "SYNC_META_REQUEST";
+    };
 
 export type WebRTCEventMessage = WebRTCTransportMessage | WebRTCInternalMessage;
 

@@ -41,15 +41,10 @@ export default function RoomPage() {
     toggleMute,
     toggleCamera,
   } = useMediaStream();
-  const { socket, isConnected, sendSignal, disconnect, token } = useSocket(roomId);
-  const { name, setName } = useUserProfile(token);
+  const { socket, isConnected, sendSignal, disconnect } = useSocket(roomId);
+  const { name, setName } = useUserProfile(isMuted, isCameraOff);
   const { peers, getPeerStream, createPeer, destroyPeer, rebindStream } =
-    useWebRTC(sendSignal, {
-      token,
-      name,
-      isMuted,
-      isCameraOff,
-    });
+    useWebRTC(sendSignal);
   const { preferences, setPreferences } = useRoomPreferences();
 
   // ── Handlers ──
@@ -170,7 +165,7 @@ export default function RoomPage() {
           Room: {displayRoomId}
         </span>
         <div className="flex items-center gap-3">
-          <UserMetaEditor token={token} name={name} onChangeName={setName} />
+          <UserMetaEditor name={name} onSave={setName} />
           <span className="text-[13px] text-text-secondary flex items-center gap-1.5">
             <Users className="w-4 h-4" /> {totalParticipants} / 4
           </span>

@@ -1,31 +1,22 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function UserMetaEditor({
-  token,
   name,
-  onChangeName,
+  onSave,
 }: {
-  token: string;
   name: string;
-  onChangeName: (nextName: string) => void;
+  onSave: (nextName: string) => void;
 }) {
   const [draftName, setDraftName] = useState(name);
-
-  useEffect(() => {
-    setDraftName(name);
-  }, [name]);
 
   const handleSave = () => {
     const trimmedName = draftName.trim();
     if (!trimmedName) return;
-    onChangeName(trimmedName);
+    onSave(trimmedName);
   };
 
   return (
     <div className="flex items-center gap-2 bg-bg-glass border border-border-glass rounded-full px-2 py-1.5 max-w-[420px]">
-      <span className="text-[11px] text-text-secondary whitespace-nowrap px-2">
-        {token.slice(0, 8)}
-      </span>
       <input
         value={draftName}
         onChange={(event) => setDraftName(event.target.value)}
