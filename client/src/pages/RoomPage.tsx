@@ -105,10 +105,65 @@ export default function RoomPage() {
   const { socket, isConnected, sendSignal, disconnect } = useSocket(roomId);
   const { peers, createPeer, destroyPeer, rebindStream } = useWebRTC(sendSignal);
 
+  const { preferences, setPreferences } = useRoomPreferences();
+  const [mutedPeerIds, setMutedPeerIds] = useState<Record<string, boolean>>({});
+
+  // ── Handlers ──
+  const copyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+  };
+
+  const leaveRoom = useCallback(() => {
+    stopAll();
+    disconnect();
+    navigate("/");
+  }, [stopAll, disconnect, navigate]);
+
+  // Attach local stream to video element
+  const localVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
+    if (localVideoRef.current && stream)
+      localVideoRef.current.srcObject = stream;
+  }, [stream]);
+
+  useEffect(() => {
+    rebindStream(stream);
+  }, [rebindStream, stream]);
+
+  useEffect(() => {
+    if (!stream) return;
+
+    if (preferences.isMuted !== isMuted) {
+      toggleMute();
+    }
+
+    if (preferences.isCameraOff !== isCameraOff) {
+      toggleCamera();
+    }
+  }, [
+    stream,
+    preferences.isMuted,
+    preferences.isCameraOff,
+    isMuted,
+    isCameraOff,
+    toggleMute,
+    toggleCamera,
+  ]);
+
+  // Redirect on media error
+  useEffect(() => {
+    if (error) {
+      alert(error);
+      navigate("/");
+    }
+  }, [error, navigate]);
+
+   useEffect(() => {
     if (!socket || !roomId) return;
 
-    const handleRoomFull = () => {};
+    const handleRoomFull = () => {
+      leaveRoom();
+    };
     const handleSignal = (data: {
       senderId: string;
       signal: SimplePeer.SignalData;
@@ -147,40 +202,7 @@ export default function RoomPage() {
       socket.off("existing-users", handleExistingUsers);
       socket.off("connect", handleConnectJoin);
     };
-  }, [socket, roomId, createPeer, destroyPeer]);
-
-  const { preferences, setPreferences } = useRoomPreferences();
-  const [mutedPeerIds, setMutedPeerIds] = useState<Record<string, boolean>>({});
-
-  // ── Handlers ──
-  const copyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-  };
-
-  const leaveRoom = useCallback(() => {
-    stopAll();
-    disconnect();
-    navigate("/");
-  }, [stopAll, disconnect, navigate]);
-
-  // Attach local stream to video element
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    if (localVideoRef.current && stream)
-      localVideoRef.current.srcObject = stream;
-  }, [stream]);
-
-  useEffect(() => {
-    rebindStream(stream);
-  }, [rebindStream, stream]);
-
-  // Redirect on media error
-  useEffect(() => {
-    if (error) {
-      alert(error);
-      navigate("/");
-    }
-  }, [error, navigate]);
+  }, [socket, roomId,leaveRoom,createPeer, destroyPeer]);
 
   const totalParticipants = 1 + peers.length;
   const displayRoomId = roomId ? roomId.slice(0, 8) + "..." : "";
@@ -273,7 +295,13 @@ export default function RoomPage() {
       <div className="flex items-center justify-center gap-3 px-5 py-4 border-t border-border-glass bg-bg-secondary/60 backdrop-blur-[10px]">
         <button
           className={`w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 ${isMuted ? "!bg-danger/20 !border-danger !text-danger" : ""}`}
-          onClick={toggleMute}
+          onClick={() => {
+            toggleMute();
+            setPreferences((prev) => ({
+              ...prev,
+              isMuted: !isMuted,
+            }));
+          }}
           title={isMuted ? "Unmute" : "Mute"}
           id="toggle-mute-btn"
         >
@@ -285,7 +313,13 @@ export default function RoomPage() {
         </button>
         <button
           className={`w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 ${isCameraOff ? "!bg-danger/20 !border-danger !text-danger" : ""}`}
-          onClick={toggleCamera}
+          onClick={() => {
+            toggleCamera();
+            setPreferences((prev) => ({
+              ...prev,
+              isCameraOff: !isCameraOff,
+            }));
+          }}
           title={isCameraOff ? "Turn on camera" : "Turn off camera"}
           id="toggle-camera-btn"
         >
@@ -298,9 +332,10 @@ export default function RoomPage() {
         <button
           className={`w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 ${preferences.isLocalVideoMirrored ? "!bg-accent/20 !border-accent !text-accent" : ""}`}
           onClick={() =>
-            setPreferences({
+            setPreferences((prev) => ({
+              ...prev,
               isLocalVideoMirrored: !preferences.isLocalVideoMirrored,
-            })
+            }))
           }
           title={
             preferences.isLocalVideoMirrored

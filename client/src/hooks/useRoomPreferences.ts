@@ -2,11 +2,15 @@ import { useEffect, useState } from "react";
 
 type RoomPreferences = {
   isLocalVideoMirrored: boolean;
+  isMuted: boolean;
+  isCameraOff: boolean;
 };
 
 const ROOM_PREFERENCES_STORAGE_KEY = "webrtc.roomPreferences";
 const DEFAULT_PREFERENCES: RoomPreferences = {
   isLocalVideoMirrored: true,
+  isMuted: false,
+  isCameraOff: false,
 };
 
 function getInitialPreferences(): RoomPreferences {
@@ -17,8 +21,13 @@ function getInitialPreferences(): RoomPreferences {
   if (!savedPreferences) return DEFAULT_PREFERENCES;
 
   try {
-    const parsed = JSON.parse(savedPreferences) as RoomPreferences;
-    return parsed;
+    const parsed = JSON.parse(savedPreferences) as Partial<RoomPreferences>;
+    return {
+      isLocalVideoMirrored:
+        parsed.isLocalVideoMirrored ?? DEFAULT_PREFERENCES.isLocalVideoMirrored,
+      isMuted: parsed.isMuted ?? DEFAULT_PREFERENCES.isMuted,
+      isCameraOff: parsed.isCameraOff ?? DEFAULT_PREFERENCES.isCameraOff,
+    };
   } catch {
     return DEFAULT_PREFERENCES;
   }
