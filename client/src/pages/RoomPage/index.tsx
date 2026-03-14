@@ -7,12 +7,9 @@ import {
   Mic,
   MicOff,
   PhoneOff,
-  UserRound,
   Users,
   Video,
   VideoOff,
-  Volume2,
-  VolumeX,
 } from "lucide-react";
 import { useMediaStream } from "./hooks/useMediaStream";
 import { useSocket } from "./hooks/useSocket";
@@ -20,6 +17,7 @@ import { useWebRTC } from "./hooks/useWebRTC";
 import { useRoomPreferences } from "./hooks/useRoomPreferences";
 import { webrtcEvents } from "../../utils/event-bus/webrtc-events";
 import RemoteVideo from "./components/RemoteVideo";
+import LocaleVideo from "./components/LocaleVideo";
 
 type ChatMessageItem = {
   id: string;
@@ -125,7 +123,6 @@ export default function RoomPage() {
     rebindStream,
   } = useWebRTC(sendSignal);
   const { preferences, setPreferences } = useRoomPreferences();
-  const [mutedPeerIds, setMutedPeerIds] = useState<Record<string, boolean>>({});
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessageItem[]>([]);
 
@@ -310,25 +307,11 @@ export default function RoomPage() {
           style={{ gridAutoRows: "1fr" }}
         >
           {/* Local Video */}
-          <div
-            className={`relative rounded-xl overflow-hidden bg-bg-secondary border border-border-glass`}
-          >
-            <video
-              ref={localVideoRef}
-              autoPlay
-              muted
-              playsInline
-              className={`w-full h-full object-cover block ${preferences.isLocalVideoMirrored ? "mirror-x" : ""}`}
-            />
-            <span className="absolute bottom-3 left-3 text-xs font-medium text-white bg-black/60 backdrop-blur-lg py-1 px-3 rounded-full tracking-wide">
-              You
-            </span>
-            {isMuted && (
-              <span className="absolute top-3 right-3 text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center">
-                <MicOff className="w-4 h-4" />
-              </span>
-            )}
-          </div>
+          <LocaleVideo
+            stream={stream}
+            isMuted={isMuted}
+            isMirror={preferences.isLocalVideoMirrored}
+          />
 
           {peers.map((meta) => {
             const stream = getPeerStream(meta.id);
