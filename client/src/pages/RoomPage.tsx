@@ -36,9 +36,8 @@ function RemoteVideo({
   const [hasVideo, setHasVideo] = useState(() => hasLiveVideo(stream));
 
   useEffect(() => {
-    if (ref.current) {
+    if (ref.current) 
       ref.current.srcObject = stream;
-    }
   }, [stream]);
 
   useEffect(() => {
@@ -101,10 +100,8 @@ export default function RoomPage() {
     toggleMute,
     toggleCamera,
   } = useMediaStream();
-
   const { socket, isConnected, sendSignal, disconnect } = useSocket(roomId);
   const { peers, createPeer, destroyPeer, rebindStream } = useWebRTC(sendSignal);
-
   const { preferences, setPreferences } = useRoomPreferences();
   const [mutedPeerIds, setMutedPeerIds] = useState<Record<string, boolean>>({});
 

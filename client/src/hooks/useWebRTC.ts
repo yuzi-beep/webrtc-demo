@@ -6,6 +6,16 @@ export interface PeerInfo {
   stream: MediaStream;
 }
 
+export type WebRTCMessage =
+  | {
+      type: "MEDIA_STATE";
+      payload: { isMuted: boolean; isCameraOff: boolean };
+    }
+  | {
+      type: "CHAT_MESSAGE";
+      payload: { text: string; senderName: string; timestamp: number };
+    };
+
 /**
  * Manages WebRTC peer connections using simple-peer.
  * Exposes RTC handlers; signaling transport is managed by caller.
@@ -129,8 +139,13 @@ export function useWebRTC(
     [destroyPeer, sendSignal, updateState],
   );
 
+  const sendMessage = useCallback((message: WebRTCMessage) => {
+    return message;
+  }, []);
+
   return {
     peers,
+    sendMessage,
     destroyPeer,
     createPeer,
     rebindStream,
