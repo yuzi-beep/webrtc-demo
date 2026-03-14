@@ -19,6 +19,7 @@ import { useSocket } from "./hooks/useSocket";
 import { useWebRTC } from "./hooks/useWebRTC";
 import { useRoomPreferences } from "./hooks/useRoomPreferences";
 import { webrtcEvents } from "../../utils/event-bus/webrtc-events";
+import RemoteVideo from "./components/RemoteVideo";
 
 type ChatMessageItem = {
   id: string;
@@ -28,65 +29,6 @@ type ChatMessageItem = {
   timestamp: number;
   isSelf?: boolean;
 };
-
-function hasLiveVideo(stream: MediaStream) {
-  const tracks = stream.getVideoTracks();
-  if (tracks.length === 0) return false;
-  return tracks.some((track) => track.readyState === "live" && !track.muted);
-}
-
-function RemoteVideo({
-  stream,
-  muted,
-}: {
-  stream: MediaStream;
-  muted: boolean;
-}) {
-  const ref = useRef<HTMLVideoElement>(null);
-  const [hasVideo, setHasVideo] = useState(() => hasLiveVideo(stream));
-
-  useEffect(() => {
-    if (ref.current) ref.current.srcObject = stream;
-  }, [stream]);
-
-  useEffect(() => {
-    const tracks = stream.getVideoTracks();
-    const sync = () => setHasVideo(hasLiveVideo(stream));
-
-    sync();
-    tracks.forEach((track) => {
-      track.addEventListener("mute", sync);
-      track.addEventListener("unmute", sync);
-      track.addEventListener("ended", sync);
-    });
-
-    return () => {
-      tracks.forEach((track) => {
-        track.removeEventListener("mute", sync);
-        track.removeEventListener("unmute", sync);
-        track.removeEventListener("ended", sync);
-      });
-    };
-  }, [stream]);
-
-  return (
-    <>
-      <video
-        ref={ref}
-        autoPlay
-        playsInline
-        muted={muted}
-        className="w-full h-full object-cover block"
-      />
-      {!hasVideo && (
-        <div className="absolute inset-0 bg-bg-secondary flex flex-col items-center justify-center gap-2 text-text-secondary">
-          <UserRound className="w-14 h-14" />
-          <span className="text-sm font-medium">Camera Off</span>
-        </div>
-      )}
-    </>
-  );
-}
 
 const gridClasses: Record<number, string> = {
   1: "grid-cols-1 grid-rows-1",
@@ -388,51 +330,9 @@ export default function RoomPage() {
             )}
           </div>
 
-          {peers.map((peer) => {
-            const peerStream = getPeerStream(peer.id);
-
-            return (
-              <div
-                key={peer.id}
-                className={`relative rounded-xl overflow-hidden bg-bg-secondary border border-border-glass`}
-              >
-                {peerStream ? (
-                  <RemoteVideo
-                    stream={peerStream}
-                    muted={Boolean(mutedPeerIds[peer.id])}
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-bg-secondary flex flex-col items-center justify-center gap-2 text-text-secondary">
-                    <UserRound className="w-14 h-14" />
-                    <span className="text-sm font-medium">Connecting...</span>
-                  </div>
-                )}
-                <span className="absolute bottom-3 left-3 text-xs font-medium text-white bg-black/60 backdrop-blur-lg py-1 px-3 rounded-full tracking-wide">
-                  {peer.name}
-                </span>
-                <button
-                  className={`absolute top-3 right-3 text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center ${mutedPeerIds[peer.id] ? "text-danger" : "text-white"}`}
-                  onClick={() =>
-                    setMutedPeerIds((prev) => ({
-                      ...prev,
-                      [peer.id]: !prev[peer.id],
-                    }))
-                  }
-                  title={
-                    mutedPeerIds[peer.id]
-                      ? "Unmute this user"
-                      : "Mute this user"
-                  }
-                  id={`toggle-peer-mute-${peer.id}`}
-                >
-                  {mutedPeerIds[peer.id] ? (
-                    <VolumeX className="w-4 h-4" />
-                  ) : (
-                    <Volume2 className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            );
+          {peers.map((meta) => {
+            const stream = getPeerStream(meta.id);
+            return <RemoteVideo key={meta.id} stream={stream} meta={meta} />;
           })}
         </div>
 

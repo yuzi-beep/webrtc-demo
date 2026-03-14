@@ -44,7 +44,7 @@ export function useWebRTC(
         id,
         name: id.slice(0, 6),
         isMuted: false,
-        isCameraOff: false
+        isCameraOff: false,
       });
     });
     setPeers(result);
@@ -138,8 +138,8 @@ export function useWebRTC(
     [destroyPeer, sendSignal, updateState],
   );
 
-  const getPeerStream = useCallback((peerId: string) => {
-    return streamsRef.current.get(peerId);
+  const getPeerStream = useCallback((peerId: string): MediaStream | null => {
+    return streamsRef.current.get(peerId) || null;
   }, []);
 
   const sendMessage = useCallback((message: WebRTCMessage) => {
