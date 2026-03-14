@@ -101,23 +101,23 @@ export default function RoomPage() {
       leaveRoom();
     };
     const handleSignal = (data: {
-      senderId: string;
+      senderToken: string;
       signal: SimplePeer.SignalData;
     }) => {
-      console.log("Received signal from", data.senderId);
-      const { senderId, signal } = data;
-      createPeer(senderId, signal);
+      const { senderToken, signal } = data;
+      console.log("Received signal from token", senderToken);
+      createPeer(senderToken, signal);
     };
-    const handleUserConnected = (data: string) => {
-      console.log("User connected:", data);
+    const handleTokenConnected = (data: string) => {
+      console.log("Token connected:", data);
     };
-    const handleUserDisconnected = (data: string) => {
-      console.log("User disconnected:", data);
+    const handleTokenDisconnected = (data: string) => {
+      console.log("Token disconnected:", data);
       destroyPeer(data);
     };
-    const handleExistingUsers = (data: string[]) => {
-      console.log("Existing users in room:", data);
-      data.forEach((userId) => createPeer(userId));
+    const handleExistingTokens = (data: string[]) => {
+      console.log("Existing tokens in room:", data);
+      data.forEach((peerToken) => createPeer(peerToken));
     };
     const handleConnectJoin = () => {
       socket.emit("join-room", roomId);
@@ -125,17 +125,17 @@ export default function RoomPage() {
 
     socket.on("room-full", handleRoomFull);
     socket.on("signal", handleSignal);
-    socket.on("user-connected", handleUserConnected);
-    socket.on("user-disconnected", handleUserDisconnected);
-    socket.on("existing-users", handleExistingUsers);
+    socket.on("token-connected", handleTokenConnected);
+    socket.on("token-disconnected", handleTokenDisconnected);
+    socket.on("existing-tokens", handleExistingTokens);
     socket.on("connect", handleConnectJoin);
 
     return () => {
       socket.off("room-full", handleRoomFull);
       socket.off("signal", handleSignal);
-      socket.off("user-connected", handleUserConnected);
-      socket.off("user-disconnected", handleUserDisconnected);
-      socket.off("existing-users", handleExistingUsers);
+      socket.off("token-connected", handleTokenConnected);
+      socket.off("token-disconnected", handleTokenDisconnected);
+      socket.off("existing-tokens", handleExistingTokens);
       socket.off("connect", handleConnectJoin);
     };
   }, [socket, roomId, leaveRoom, createPeer, destroyPeer]);
@@ -181,8 +181,8 @@ export default function RoomPage() {
           />
 
           {peers.map((meta) => {
-            const stream = getPeerStream(meta.id);
-            return <RemoteVideo key={meta.id} stream={stream} meta={meta} />;
+            const stream = getPeerStream(meta.token);
+            return <RemoteVideo key={meta.token} stream={stream} meta={meta} />;
           })}
         </div>
 

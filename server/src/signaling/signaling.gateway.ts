@@ -25,21 +25,45 @@ export class SignalingGateway
 
   // Track which room each socket belongs to
   private socketRoomMap = new Map<string, string>();
+  private socketTokenMap = new Map<string, string>();
+  private tokenSocketMap = new Map<string, string>();
+
+  private resolveToken(socket: Socket): string {
+    const handshakeToken =
+      typeof socket.handshake.auth?.token === 'string'
+        ? socket.handshake.auth.token
+        : undefined;
+    const token = handshakeToken?.trim();
+
+    if (token) return token;
+
+    this.logger.warn(
+      `Client ${socket.id} missing token in handshake auth; falling back to socket.id`,
+    );
+    return socket.id;
+  }
 
   handleConnection(socket: Socket) {
-    this.logger.debug(`Client connected: ${socket.id}`);
+    const token = this.resolveToken(socket);
+    this.socketTokenMap.set(socket.id, token);
+    this.tokenSocketMap.set(token, socket.id);
+    this.logger.debug(`Client connected: ${socket.id}, token: ${token}`);
   }
 
   handleDisconnect(socket: Socket) {
-    this.logger.debug(`Client disconnected: ${socket.id}`);
+    const token = this.socketTokenMap.get(socket.id) ?? socket.id;
+    this.logger.debug(`Client disconnected: ${socket.id}, token: ${token}`);
     const roomId = this.socketRoomMap.get(socket.id);
     if (roomId) {
       this.logger.debug(
-        `Broadcasting user-disconnected for ${socket.id} in room ${roomId}`,
+        `Broadcasting token-disconnected for ${token} in room ${roomId}`,
       );
-      socket.to(roomId).emit('user-disconnected', socket.id);
+      socket.to(roomId).emit('token-disconnected', token);
       this.socketRoomMap.delete(socket.id);
     }
+
+    this.socketTokenMap.delete(socket.id);
+    this.tokenSocketMap.delete(token);
   }
 
   @SubscribeMessage('join-room')
@@ -47,10 +71,21 @@ export class SignalingGateway
     @ConnectedSocket() socket: Socket,
     @MessageBody() roomId: string,
   ) {
-    this.logger.debug(`Client ${socket.id} attempting to join room: ${roomId}`);
+    const token =
+      this.socketTokenMap.get(socket.id) ?? this.resolveToken(socket);
+    this.logger.debug(
+      `Client ${socket.id} (token: ${token}) attempting to join room: ${roomId}`,
+    );
 
     const room = this.server.sockets.adapter.rooms.get(roomId);
     const existingMembers: string[] = room ? Array.from(room) : [];
+    const existingTokens = Array.from(
+      new Set(
+        existingMembers
+          .map((memberSocketId) => this.socketTokenMap.get(memberSocketId))
+          .filter((memberToken): memberToken is string => !!memberToken),
+      ),
+    );
 
     if (existingMembers.length >= 4) {
       this.logger.warn(`Room ${roomId} is full. Rejecting client ${socket.id}`);
@@ -62,15 +97,15 @@ export class SignalingGateway
     this.socketRoomMap.set(socket.id, roomId);
 
     this.logger.debug(
-      `Client ${socket.id} joined room: ${roomId}. ` +
+      `Client ${socket.id} (token: ${token}) joined room: ${roomId}. ` +
         `Total now: ${existingMembers.length + 1}`,
     );
 
-    // Notify existing members that a new user has connected
-    socket.to(roomId).emit('user-connected', socket.id);
+    // Notify existing members that a new token has connected
+    socket.to(roomId).emit('token-connected', token);
 
-    // Tell the new user about all existing members
-    socket.emit('existing-users', existingMembers);
+    // Tell the new token about all existing members
+    socket.emit('existing-tokens', existingTokens);
   }
 
   /**
@@ -80,13 +115,25 @@ export class SignalingGateway
   @SubscribeMessage('signal')
   handleSignal(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: { targetId: string; signal: string },
+    @MessageBody() data: { targetToken: string; signal: string },
   ) {
-    const { signal, targetId } = data;
-    this.logger.debug(`Relaying signal from ${socket.id} to ${targetId}`);
+    const { signal, targetToken } = data;
+    const senderToken = this.socketTokenMap.get(socket.id) ?? socket.id;
+    const targetSocketId = this.tokenSocketMap.get(targetToken);
 
-    this.server.to(targetId).emit('signal', {
-      senderId: socket.id,
+    if (!targetSocketId) {
+      this.logger.warn(
+        `Cannot relay signal: target token ${targetToken} has no active socket`,
+      );
+      return;
+    }
+
+    this.logger.debug(
+      `Relaying signal from token ${senderToken} (socket ${socket.id}) to token ${targetToken} (socket ${targetSocketId})`,
+    );
+
+    this.server.to(targetSocketId).emit('signal', {
+      senderToken,
       signal,
     });
   }

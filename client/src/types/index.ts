@@ -8,6 +8,16 @@ export type WebRTCTransportMessage =
       type: "CHAT_MESSAGE";
       senderId: string;
       payload: { text: string; senderName: string; timestamp: number };
+    }
+  | {
+      type: "SYNC_PROFILE";
+      senderId: string;
+      payload: {
+        id: string;
+        name: string;
+        isMuted: boolean;
+        isCameraOff: boolean;
+      };
     };
 
 export type WebRTCInternalMessage = {

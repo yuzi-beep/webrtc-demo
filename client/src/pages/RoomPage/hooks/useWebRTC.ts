@@ -3,13 +3,8 @@ import SimplePeer from "simple-peer";
 import { webrtcEvents } from "../../../utils/event-bus/webrtc-events";
 import type { WebRTCEventMessage } from "@/types";
 
-export interface PeerInfo {
-  id: string;
-  stream: MediaStream;
-}
-
 export interface MerberMeta {
-  id: string;
+  token: string;
   name: string;
   isMuted: boolean;
   isCameraOff: boolean;
@@ -21,7 +16,7 @@ export interface MerberMeta {
  * Exposes RTC handlers; signaling transport is managed by caller.
  */
 export function useWebRTC(
-  sendSignal: (targetId: string, signal: SimplePeer.SignalData) => void,
+  sendSignal: (targetToken: string, signal: SimplePeer.SignalData) => void,
 ) {
   const [peers, setPeers] = useState<MerberMeta[]>([]);
   const peersRef = useRef<Map<string, SimplePeer.Instance>>(new Map());
@@ -30,10 +25,10 @@ export function useWebRTC(
 
   const updateState = useCallback(() => {
     const result: MerberMeta[] = [];
-    peersRef.current.forEach((_, id) => {
+    peersRef.current.forEach((_, token) => {
       result.push({
-        id,
-        name: id.slice(0, 6),
+        token,
+        name: token.slice(0, 6),
         isMuted: false,
         isCameraOff: false,
       });
@@ -87,8 +82,8 @@ export function useWebRTC(
   }, []);
 
   const createPeer = useCallback(
-    (remotePeerId: string, signal?: SimplePeer.SignalData) => {
-      const existingPeer = peersRef.current.get(remotePeerId);
+    (remoteToken: string, signal?: SimplePeer.SignalData) => {
+      const existingPeer = peersRef.current.get(remoteToken);
       if (existingPeer) {
         if (signal) existingPeer.signal(signal);
         return existingPeer;
@@ -107,7 +102,7 @@ export function useWebRTC(
       });
       if (signal) peer.signal(signal);
 
-      peer.on("signal", (signal) => sendSignal(remotePeerId, signal));
+      peer.on("signal", (signal) => sendSignal(remoteToken, signal));
       peer.on("data", (data) => {
         try {
           const message = JSON.parse(data.toString()) as WebRTCEventMessage;
@@ -117,12 +112,12 @@ export function useWebRTC(
         }
       });
       peer.on("stream", (remoteStream) => {
-        streamsRef.current.set(remotePeerId, remoteStream);
+        streamsRef.current.set(remoteToken, remoteStream);
         updateState();
       });
-      peer.on("close", () => destroyPeer(remotePeerId));
-      peer.on("error", () => destroyPeer(remotePeerId));
-      peersRef.current.set(remotePeerId, peer);
+      peer.on("close", () => destroyPeer(remoteToken));
+      peer.on("error", () => destroyPeer(remoteToken));
+      peersRef.current.set(remoteToken, peer);
       updateState();
       return peer;
     },

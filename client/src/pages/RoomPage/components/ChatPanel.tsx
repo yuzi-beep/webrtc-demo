@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { webrtcEvents } from "../../../utils/event-bus/webrtc-events";
+import { getOrCreateToken } from "@/utils/token-identity";
 
 interface ChatMessageItem {
   id: string;
@@ -12,6 +13,7 @@ interface ChatMessageItem {
 export default function ChatPanel() {
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [inputValue, setInputValue] = useState("");
+  const [token] = useState(() => getOrCreateToken());
 
   useEffect(() => {
     const handleMessage = (message: {
@@ -28,7 +30,7 @@ export default function ChatPanel() {
           senderName: payload.senderName,
           text: payload.text,
           timestamp: payload.timestamp,
-          isSelf: senderId === "self",
+          isSelf: senderId === token,
         },
       ]);
     };
@@ -38,7 +40,7 @@ export default function ChatPanel() {
     return () => {
       webrtcEvents.off("CHAT_MESSAGE", handleMessage);
     };
-  }, []);
+  }, [token]);
 
   const onSend = () => {
     const text = inputValue.trim();
@@ -47,7 +49,7 @@ export default function ChatPanel() {
     const timestamp = Date.now();
     webrtcEvents.emit({
       type: "CHAT_SEND",
-      senderId: "self",
+      senderId: token,
       payload: {
         text,
         senderName: "You",
