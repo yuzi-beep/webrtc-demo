@@ -1,3 +1,6 @@
+import type SimplePeer from "simple-peer";
+import type { Socket } from "socket.io-client";
+
 export type WebRTCTransportMessage =
   | {
       type: "MEDIA_STATE";
@@ -33,3 +36,28 @@ export type WebRTCInternalMessage =
 export type WebRTCEventMessage = WebRTCTransportMessage | WebRTCInternalMessage;
 
 export type WebRTCMessage = WebRTCTransportMessage;
+
+export type SocketEventMessage = {
+  type: "SIGNAL_SEND";
+  payload: { targetToken: string; signal: SimplePeer.SignalData };
+};
+
+export interface MerberMeta {
+  token: string;
+  name: string;
+  isMuted: boolean;
+  isCameraOff: boolean;
+  status?: "connected" | "connecting";
+}
+
+export interface RoomControllerParms {
+  roomId: string;
+  socket: Socket | null;
+  createPeer: (remoteToken: string, signal?: SimplePeer.SignalData) => void;
+  destroyPeer: (targetToken: string) => void;
+}
+
+export type SignalEventPayload = {
+  senderToken: string;
+  signal: SimplePeer.SignalData;
+};

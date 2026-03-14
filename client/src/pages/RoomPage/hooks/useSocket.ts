@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import type SimplePeer from "simple-peer";
 import { io } from "socket.io-client";
 import { getOrCreateToken } from "@/utils/token-identity";
+import { socketEvents } from "@/utils/event-bus/socket-events";
+import type { SocketEventMessage } from "@/types";
 
 const SIGNALING_SERVER = "http://localhost:3000";
 
@@ -46,18 +47,27 @@ export function useSocket(roomId: string | undefined) {
     };
   }, [socket]);
 
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleSignalSend = ({
+      payload: { targetToken, signal },
+    }: Extract<SocketEventMessage, { type: "SIGNAL_SEND" }>) => {
+      socket.emit("signal", { targetToken, signal });
+    };
+
+    socketEvents.on("SIGNAL_SEND", handleSignalSend);
+
+    return () => {
+      socketEvents.off("SIGNAL_SEND", handleSignalSend);
+    };
+  }, [socket]);
+
   const disconnect = useCallback(() => {
     socket?.disconnect();
     setIsConnected(false);
     setSocketId(null);
   }, [socket]);
-
-  const sendSignal = useCallback(
-    (targetToken: string, signal: SimplePeer.SignalData) => {
-      socket?.emit("signal", { targetToken, signal });
-    },
-    [socket],
-  );
 
   return {
     socket,
@@ -65,6 +75,5 @@ export function useSocket(roomId: string | undefined) {
     token,
     isConnected,
     disconnect,
-    sendSignal,
   };
 }

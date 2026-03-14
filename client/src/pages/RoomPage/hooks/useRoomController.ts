@@ -1,14 +1,6 @@
-import type { Socket } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
-import type SimplePeer from "simple-peer";
 import { useCallback, useEffect } from "react";
-
-export interface RoomControllerParms {
-  roomId: string;
-  socket: Socket | null;
-  createPeer: (remoteToken: string, signal?: SimplePeer.SignalData) => void;
-  destroyPeer: (targetToken: string) => void;
-}
+import type { RoomControllerParms, SignalEventPayload } from "@/types";
 
 export const useRoomController = ({
   roomId,
@@ -24,13 +16,8 @@ export const useRoomController = ({
   useEffect(() => {
     if (!socket || !roomId) return;
     const handleRoomFull = () => leaveRoom();
-    const handleSignal = ({
-      senderToken,
-      signal,
-    }: {
-      senderToken: string;
-      signal: SimplePeer.SignalData;
-    }) => createPeer(senderToken, signal);
+    const handleSignal = ({ senderToken, signal }: SignalEventPayload) =>
+      createPeer(senderToken, signal);
     const handleTokenConnected = (data: string) =>
       console.log("Token connected:", data);
     const handleTokenDisconnected = (data: string) => destroyPeer(data);

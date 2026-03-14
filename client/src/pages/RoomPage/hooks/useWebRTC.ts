@@ -1,23 +1,14 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import SimplePeer from "simple-peer";
 import { webrtcEvents } from "../../../utils/event-bus/webrtc-events";
-import type { WebRTCEventMessage } from "@/types";
-
-export interface MerberMeta {
-  token: string;
-  name: string;
-  isMuted: boolean;
-  isCameraOff: boolean;
-  status?: "connected" | "connecting";
-}
+import { socketEvents } from "@/utils/event-bus/socket-events";
+import type { MerberMeta, WebRTCEventMessage } from "@/types";
 
 /**
  * Manages WebRTC peer connections using simple-peer.
- * Exposes RTC handlers; signaling transport is managed by caller.
+ * Exposes RTC handlers; signaling transport is handled through socket event bus.
  */
-export function useWebRTC(
-  sendSignal: (targetToken: string, signal: SimplePeer.SignalData) => void,
-) {
+export function useWebRTC() {
   const [peers, setPeers] = useState<MerberMeta[]>([]);
   const localStreamRef = useRef<MediaStream>(null);
   const peersRef = useRef<Map<string, SimplePeer.Instance>>(new Map());
@@ -131,7 +122,15 @@ export function useWebRTC(
       });
       if (signal) peer.signal(signal);
 
-      peer.on("signal", (signal) => sendSignal(remoteToken, signal));
+      peer.on("signal", (signal) => {
+        socketEvents.emit({
+          type: "SIGNAL_SEND",
+          payload: {
+            targetToken: remoteToken,
+            signal,
+          },
+        });
+      });
       peer.on("connect", () => {
         upsertPeerMeta(remoteToken, { status: "connected" });
         webrtcEvents.emit({ type: "SYNC_META_REQUEST" });
@@ -165,7 +164,7 @@ export function useWebRTC(
       updateState();
       return peer;
     },
-    [destroyPeer, sendSignal, updateState, upsertPeerMeta],
+    [destroyPeer, updateState, upsertPeerMeta],
   );
 
   const getPeerStream = useCallback((peerId: string): MediaStream | null => {

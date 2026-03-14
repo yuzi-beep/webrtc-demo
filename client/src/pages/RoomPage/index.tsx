@@ -32,9 +32,9 @@ export default function RoomPage() {
     },
     setPreferences,
   } = usePreferences();
-  const { socket, isConnected, sendSignal } = useSocket(roomId);
+  const { socket, isConnected } = useSocket(roomId);
   const { peers, getPeerStream, createPeer, destroyPeer, rebindStream } =
-    useWebRTC(sendSignal);
+    useWebRTC();
   const { streamRef, toggleMute, toggleCamera } = useMediaStream(
     isMuted,
     isCameraOff,

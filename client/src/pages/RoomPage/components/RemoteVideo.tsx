@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { MicOff, VideoOff, Volume2, VolumeX } from "lucide-react";
-import { type MerberMeta } from "../hooks/useWebRTC";
+import { type MerberMeta } from "@/types";
 
 export default function RemoteVideo({
   stream,
