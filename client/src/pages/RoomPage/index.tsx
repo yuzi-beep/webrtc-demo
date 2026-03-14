@@ -9,6 +9,8 @@ import {
   Users,
   Video,
   VideoOff,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { useMediaStream } from "./hooks/useMediaStream";
 import { useSocket } from "./hooks/useSocket";
@@ -126,6 +128,7 @@ export default function RoomPage() {
             isMuted={isMuted}
             isCameraOff={isCameraOff}
             isMirror={preferences.isLocalVideoMirrored}
+            allowEcho={preferences.allowEcho}
             name={name}
           />
 
@@ -141,7 +144,7 @@ export default function RoomPage() {
       {/* Control Bar */}
       <div className="flex items-center justify-center gap-3 px-5 py-4 border-t border-border-glass bg-bg-secondary/60 backdrop-blur-[10px]">
         <button
-          className={`w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 ${isMuted ? "!bg-danger/20 !border-danger !text-danger" : ""}`}
+          className={`w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 ${!isMuted ? "!bg-accent/20 !border-accent !text-accent" : ""}`}
           onClick={() => {
             toggleMute();
             setPreferences((prev) => ({
@@ -159,7 +162,7 @@ export default function RoomPage() {
           )}
         </button>
         <button
-          className={`w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 ${isCameraOff ? "!bg-danger/20 !border-danger !text-danger" : ""}`}
+          className={`w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 ${!isCameraOff ? "!bg-accent/20 !border-accent !text-accent" : ""}`}
           onClick={() => {
             toggleCamera();
             setPreferences((prev) => ({
@@ -192,6 +195,23 @@ export default function RoomPage() {
           id="toggle-mirror-btn"
         >
           <FlipHorizontal2 className="w-5 h-5" />
+        </button>
+        <button
+          className={`w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 ${preferences.allowEcho ? "!bg-accent/20 !border-accent !text-accent" : ""}`}
+          onClick={() =>
+            setPreferences((prev) => ({
+              ...prev,
+              allowEcho: !prev.allowEcho,
+            }))
+          }
+          title={preferences.allowEcho ? "Disable echo" : "Enable echo"}
+          id="toggle-echo-btn"
+        >
+          {preferences.allowEcho ? (
+            <Volume2 className="w-5 h-5" />
+          ) : (
+            <VolumeX className="w-5 h-5" />
+          )}
         </button>
         <button
           className="h-[52px] rounded-full flex items-center justify-center text-sm transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 px-5 gap-1.5 font-medium"

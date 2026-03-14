@@ -4,6 +4,7 @@ type RoomPreferences = {
   isLocalVideoMirrored: boolean;
   isMuted: boolean;
   isCameraOff: boolean;
+  allowEcho: boolean;
 };
 
 const ROOM_PREFERENCES_STORAGE_KEY = "webrtc.roomPreferences";
@@ -11,6 +12,7 @@ const DEFAULT_PREFERENCES: RoomPreferences = {
   isLocalVideoMirrored: true,
   isMuted: false,
   isCameraOff: false,
+  allowEcho: false,
 };
 
 function getInitialPreferences(): RoomPreferences {
@@ -27,6 +29,7 @@ function getInitialPreferences(): RoomPreferences {
         parsed.isLocalVideoMirrored ?? DEFAULT_PREFERENCES.isLocalVideoMirrored,
       isMuted: parsed.isMuted ?? DEFAULT_PREFERENCES.isMuted,
       isCameraOff: parsed.isCameraOff ?? DEFAULT_PREFERENCES.isCameraOff,
+      allowEcho: parsed.allowEcho ?? DEFAULT_PREFERENCES.allowEcho,
     };
   } catch {
     return DEFAULT_PREFERENCES;

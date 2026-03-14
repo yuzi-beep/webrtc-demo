@@ -6,12 +6,14 @@ export default function LocaleVideo({
   isMuted,
   isCameraOff,
   isMirror,
+  allowEcho,
   name,
 }: {
   stream: MediaStream | null;
   isMuted: boolean;
   isCameraOff: boolean;
   isMirror: boolean;
+  allowEcho: boolean;
   name: string;
 }) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -34,7 +36,7 @@ export default function LocaleVideo({
       <video
         ref={localVideoRef}
         autoPlay
-        muted={isMuted}
+        muted={!allowEcho}
         playsInline
         className={`w-full h-full object-cover block ${isMirror ? "mirror-x" : ""}`}
       />
