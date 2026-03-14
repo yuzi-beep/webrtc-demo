@@ -18,6 +18,16 @@ import { useMediaStream } from "../hooks/useMediaStream";
 import { useSocket } from "../hooks/useSocket";
 import { useWebRTC } from "../hooks/useWebRTC";
 import { useRoomPreferences } from "../hooks/useRoomPreferences";
+import { webrtcEvents } from "../utils/event-bus/webrtc-events";
+
+type ChatMessageItem = {
+  id: string;
+  senderId: string;
+  senderName: string;
+  text: string;
+  timestamp: number;
+  isSelf?: boolean;
+};
 
 function hasLiveVideo(stream: MediaStream) {
   const tracks = stream.getVideoTracks();
@@ -36,8 +46,7 @@ function RemoteVideo({
   const [hasVideo, setHasVideo] = useState(() => hasLiveVideo(stream));
 
   useEffect(() => {
-    if (ref.current) 
-      ref.current.srcObject = stream;
+    if (ref.current) ref.current.srcObject = stream;
   }, [stream]);
 
   useEffect(() => {
@@ -86,6 +95,70 @@ const gridClasses: Record<number, string> = {
   4: "grid-cols-2 grid-rows-2",
 };
 
+function ChatPanel({
+  messages,
+  value,
+  onChange,
+  onSend,
+}: {
+  messages: ChatMessageItem[];
+  value: string;
+  onChange: (value: string) => void;
+  onSend: () => void;
+}) {
+  return (
+    <aside className="w-[320px] h-full border-l border-border-glass bg-bg-secondary/60 backdrop-blur-[10px] flex flex-col">
+      <div className="px-4 py-3 border-b border-border-glass text-sm font-medium text-text-primary">
+        Chat
+      </div>
+      <div className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-2">
+        {messages.length === 0 ? (
+          <p className="text-xs text-text-secondary text-center mt-3">
+            No messages yet
+          </p>
+        ) : (
+          messages.map((message) => (
+            <div
+              key={message.id}
+              className={`rounded-lg px-3 py-2 border ${
+                message.isSelf
+                  ? "bg-accent/10 border-accent/40"
+                  : "bg-bg-glass border-border-glass"
+              }`}
+            >
+              <div className="text-[11px] text-text-secondary mb-1">
+                {message.isSelf
+                  ? "You"
+                  : message.senderName || message.senderId}
+              </div>
+              <div className="text-sm text-text-primary wrap-break-word">
+                {message.text}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+      <div className="p-3 border-t border-border-glass flex items-center gap-2">
+        <input
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") onSend();
+          }}
+          placeholder="Type a message..."
+          className="flex-1 h-10 rounded-lg px-3 text-sm bg-bg-glass border border-border-glass text-text-primary placeholder:text-text-secondary focus:outline-none"
+        />
+        <button
+          onClick={onSend}
+          className="h-10 px-3 rounded-lg text-sm bg-accent/20 border border-accent text-accent hover:opacity-90"
+        >
+          Send
+        </button>
+      </div>
+    </aside>
+  );
+}
+
 export default function RoomPage() {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
@@ -101,9 +174,18 @@ export default function RoomPage() {
     toggleCamera,
   } = useMediaStream();
   const { socket, isConnected, sendSignal, disconnect } = useSocket(roomId);
-  const { peers, createPeer, destroyPeer, rebindStream } = useWebRTC(sendSignal);
+  const {
+    peers,
+    getPeerStream,
+    sendMessage,
+    createPeer,
+    destroyPeer,
+    rebindStream,
+  } = useWebRTC(sendSignal);
   const { preferences, setPreferences } = useRoomPreferences();
   const [mutedPeerIds, setMutedPeerIds] = useState<Record<string, boolean>>({});
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessageItem[]>([]);
 
   // ── Handlers ──
   const copyLink = () => {
@@ -147,6 +229,57 @@ export default function RoomPage() {
     toggleCamera,
   ]);
 
+  useEffect(() => {
+    const handleChatMessage = (
+      payload: { text: string; senderName: string; timestamp: number },
+      senderId: string,
+    ) => {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: `${payload.timestamp}-${senderId}-${prev.length}`,
+          senderId,
+          senderName: payload.senderName,
+          text: payload.text,
+          timestamp: payload.timestamp,
+        },
+      ]);
+    };
+
+    webrtcEvents.on("CHAT_MESSAGE", handleChatMessage);
+    return () => {
+      webrtcEvents.off("CHAT_MESSAGE", handleChatMessage);
+    };
+  }, []);
+
+  const handleSendChatMessage = useCallback(() => {
+    const text = chatInput.trim();
+    if (!text) return;
+
+    const message = {
+      type: "CHAT_MESSAGE" as const,
+      payload: {
+        text,
+        senderName: "You",
+        timestamp: Date.now(),
+      },
+    };
+
+    sendMessage(message);
+    setChatMessages((prev) => [
+      ...prev,
+      {
+        id: `${message.payload.timestamp}-self-${prev.length}`,
+        senderId: "self",
+        senderName: "You",
+        text,
+        timestamp: message.payload.timestamp,
+        isSelf: true,
+      },
+    ]);
+    setChatInput("");
+  }, [chatInput, sendMessage]);
+
   // Redirect on media error
   useEffect(() => {
     if (error) {
@@ -155,7 +288,7 @@ export default function RoomPage() {
     }
   }, [error, navigate]);
 
-   useEffect(() => {
+  useEffect(() => {
     if (!socket || !roomId) return;
 
     const handleRoomFull = () => {
@@ -199,7 +332,7 @@ export default function RoomPage() {
       socket.off("existing-users", handleExistingUsers);
       socket.off("connect", handleConnectJoin);
     };
-  }, [socket, roomId,leaveRoom,createPeer, destroyPeer]);
+  }, [socket, roomId, leaveRoom, createPeer, destroyPeer]);
 
   const totalParticipants = 1 + peers.length;
   const displayRoomId = roomId ? roomId.slice(0, 8) + "..." : "";
@@ -227,65 +360,88 @@ export default function RoomPage() {
         </span>
       </div>
 
-      {/* Video Grid */}
-      <div
-        className={`flex-1 min-h-0 grid gap-2 p-2 transition-all duration-300 ${gridClasses[totalParticipants] || "grid-cols-2 grid-rows-2"}`}
-        style={{ gridAutoRows: "1fr" }}
-      >
-        {/* Local Video */}
+      {/* Main Content */}
+      <div className="flex-1 min-h-0 flex">
+        {/* Video Grid */}
         <div
-          className={`relative rounded-xl overflow-hidden bg-bg-secondary border border-border-glass`}
+          className={`flex-1 min-h-0 grid gap-2 p-2 transition-all duration-300 ${gridClasses[totalParticipants] || "grid-cols-2 grid-rows-2"}`}
+          style={{ gridAutoRows: "1fr" }}
         >
-          <video
-            ref={localVideoRef}
-            autoPlay
-            muted
-            playsInline
-            className={`w-full h-full object-cover block ${preferences.isLocalVideoMirrored ? "mirror-x" : ""}`}
-          />
-          <span className="absolute bottom-3 left-3 text-xs font-medium text-white bg-black/60 backdrop-blur-lg py-1 px-3 rounded-full tracking-wide">
-            You
-          </span>
-          {isMuted && (
-            <span className="absolute top-3 right-3 text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center">
-              <MicOff className="w-4 h-4" />
-            </span>
-          )}
-        </div>
-
-        {peers.map((peer) => (
+          {/* Local Video */}
           <div
-            key={peer.id}
             className={`relative rounded-xl overflow-hidden bg-bg-secondary border border-border-glass`}
           >
-            <RemoteVideo
-              stream={peer.stream}
-              muted={Boolean(mutedPeerIds[peer.id])}
+            <video
+              ref={localVideoRef}
+              autoPlay
+              muted
+              playsInline
+              className={`w-full h-full object-cover block ${preferences.isLocalVideoMirrored ? "mirror-x" : ""}`}
             />
             <span className="absolute bottom-3 left-3 text-xs font-medium text-white bg-black/60 backdrop-blur-lg py-1 px-3 rounded-full tracking-wide">
-              {peer.id.slice(0, 6)}
+              You
             </span>
-            <button
-              className={`absolute top-3 right-3 text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center ${mutedPeerIds[peer.id] ? "text-danger" : "text-white"}`}
-              onClick={() =>
-                setMutedPeerIds((prev) => ({
-                  ...prev,
-                  [peer.id]: !prev[peer.id],
-                }))
-              }
-              title={
-                mutedPeerIds[peer.id] ? "Unmute this user" : "Mute this user"
-              }
-              id={`toggle-peer-mute-${peer.id}`}
-            >
-              {mutedPeerIds[peer.id] ? (
-                <VolumeX className="w-4 h-4" />
-              ) : (
-                <Volume2 className="w-4 h-4" />
-              )}
-            </button>
+            {isMuted && (
+              <span className="absolute top-3 right-3 text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center">
+                <MicOff className="w-4 h-4" />
+              </span>
+            )}
           </div>
-        ))}
+
+          {peers.map((peer) => {
+            const peerStream = getPeerStream(peer.id);
+
+            return (
+              <div
+                key={peer.id}
+                className={`relative rounded-xl overflow-hidden bg-bg-secondary border border-border-glass`}
+              >
+                {peerStream ? (
+                  <RemoteVideo
+                    stream={peerStream}
+                    muted={Boolean(mutedPeerIds[peer.id])}
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-bg-secondary flex flex-col items-center justify-center gap-2 text-text-secondary">
+                    <UserRound className="w-14 h-14" />
+                    <span className="text-sm font-medium">Connecting...</span>
+                  </div>
+                )}
+                <span className="absolute bottom-3 left-3 text-xs font-medium text-white bg-black/60 backdrop-blur-lg py-1 px-3 rounded-full tracking-wide">
+                  {peer.name}
+                </span>
+                <button
+                  className={`absolute top-3 right-3 text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center ${mutedPeerIds[peer.id] ? "text-danger" : "text-white"}`}
+                  onClick={() =>
+                    setMutedPeerIds((prev) => ({
+                      ...prev,
+                      [peer.id]: !prev[peer.id],
+                    }))
+                  }
+                  title={
+                    mutedPeerIds[peer.id]
+                      ? "Unmute this user"
+                      : "Mute this user"
+                  }
+                  id={`toggle-peer-mute-${peer.id}`}
+                >
+                  {mutedPeerIds[peer.id] ? (
+                    <VolumeX className="w-4 h-4" />
+                  ) : (
+                    <Volume2 className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        <ChatPanel
+          messages={chatMessages}
+          value={chatInput}
+          onChange={setChatInput}
+          onSend={handleSendChatMessage}
+        />
       </div>
 
       {/* Control Bar */}

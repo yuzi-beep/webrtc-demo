@@ -1,9 +1,18 @@
 import { useRef, useState, useCallback } from "react";
 import SimplePeer from "simple-peer";
+import { webrtcEvents } from "../utils/event-bus/webrtc-events";
 
 export interface PeerInfo {
   id: string;
   stream: MediaStream;
+}
+
+export interface MerberMeta {
+  id: string;
+  name: string;
+  isMuted: boolean;
+  isCameraOff: boolean;
+  status?: "connected" | "connecting";
 }
 
 export type WebRTCMessage =
@@ -23,18 +32,20 @@ export type WebRTCMessage =
 export function useWebRTC(
   sendSignal: (targetId: string, signal: SimplePeer.SignalData) => void,
 ) {
-  const [peers, setPeers] = useState<PeerInfo[]>([]);
+  const [peers, setPeers] = useState<MerberMeta[]>([]);
   const peersRef = useRef<Map<string, SimplePeer.Instance>>(new Map());
   const streamsRef = useRef<Map<string, MediaStream>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
 
   const updateState = useCallback(() => {
-    const result: PeerInfo[] = [];
+    const result: MerberMeta[] = [];
     peersRef.current.forEach((_, id) => {
-      const stream = streamsRef.current.get(id);
-      if (stream) {
-        result.push({ id, stream });
-      }
+      result.push({
+        id,
+        name: id.slice(0, 6),
+        isMuted: false,
+        isCameraOff: false
+      });
     });
     setPeers(result);
   }, []);
@@ -105,46 +116,46 @@ export function useWebRTC(
       });
       if (signal) peer.signal(signal);
 
-      peer.on("signal", (signal) => {
-        sendSignal(remotePeerId, signal);
-      });
-
+      peer.on("signal", (signal) => sendSignal(remotePeerId, signal));
       peer.on("data", (data) => {
-        console.log(
-          `Received message from ${remotePeerId}: ${data.toString()}`,
-        );
+        try {
+          const message = JSON.parse(data.toString()) as WebRTCMessage;
+          webrtcEvents.emit(message.type, message.payload, remotePeerId);
+        } catch {
+          console.warn("Received invalid data from peer:", data);
+        }
       });
-
-      peer.on("connect", () => {
-        peer.send("Hello from " + remotePeerId);
-      });
-
       peer.on("stream", (remoteStream) => {
         streamsRef.current.set(remotePeerId, remoteStream);
         updateState();
       });
-
-      peer.on("close", () => {
-        destroyPeer(remotePeerId);
-      });
-
-      peer.on("error", () => {
-        destroyPeer(remotePeerId);
-      });
-
+      peer.on("close", () => destroyPeer(remotePeerId));
+      peer.on("error", () => destroyPeer(remotePeerId));
       peersRef.current.set(remotePeerId, peer);
-
+      updateState();
       return peer;
     },
     [destroyPeer, sendSignal, updateState],
   );
 
+  const getPeerStream = useCallback((peerId: string) => {
+    return streamsRef.current.get(peerId);
+  }, []);
+
   const sendMessage = useCallback((message: WebRTCMessage) => {
-    return message;
+    const serialized = JSON.stringify(message);
+    peersRef.current.forEach((peer) => {
+      try {
+        peer.send(serialized);
+      } catch {
+        // Ignore peers that are not ready to send
+      }
+    });
   }, []);
 
   return {
     peers,
+    getPeerStream,
     sendMessage,
     destroyPeer,
     createPeer,

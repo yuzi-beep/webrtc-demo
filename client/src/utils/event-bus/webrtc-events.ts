@@ -1,11 +1,12 @@
 import type { WebRTCMessage } from "../../hooks/useWebRTC";
 
+export type Listener<T> = (payload: T, senderId: string) => void;
+
 type MessageType = WebRTCMessage["type"];
 type MessagePayload<T extends MessageType> = Extract<
   WebRTCMessage,
   { type: T }
 >["payload"];
-type Listener<T> = (payload: T, senderId: string) => void;
 type AnyListener = (payload: unknown, senderId: string) => void;
 
 class WebRTCEventBus {
