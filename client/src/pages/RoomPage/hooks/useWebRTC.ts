@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback } from "react";
 import SimplePeer from "simple-peer";
-import { webrtcEvents } from "../utils/event-bus/webrtc-events";
+import { webrtcEvents } from "../../../utils/event-bus/webrtc-events";
 
 export interface PeerInfo {
   id: string;

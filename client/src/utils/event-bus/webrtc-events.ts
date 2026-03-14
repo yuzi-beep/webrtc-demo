@@ -1,4 +1,4 @@
-import type { WebRTCMessage } from "../../hooks/useWebRTC";
+import type { WebRTCMessage } from "../../pages/RoomPage/hooks/useWebRTC";
 
 export type Listener<T> = (payload: T, senderId: string) => void;
 

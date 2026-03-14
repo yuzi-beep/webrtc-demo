@@ -14,11 +14,11 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import { useMediaStream } from "../hooks/useMediaStream";
-import { useSocket } from "../hooks/useSocket";
-import { useWebRTC } from "../hooks/useWebRTC";
-import { useRoomPreferences } from "../hooks/useRoomPreferences";
-import { webrtcEvents } from "../utils/event-bus/webrtc-events";
+import { useMediaStream } from "./hooks/useMediaStream";
+import { useSocket } from "./hooks/useSocket";
+import { useWebRTC } from "./hooks/useWebRTC";
+import { useRoomPreferences } from "./hooks/useRoomPreferences";
+import { webrtcEvents } from "../../utils/event-bus/webrtc-events";
 
 type ChatMessageItem = {
   id: string;
