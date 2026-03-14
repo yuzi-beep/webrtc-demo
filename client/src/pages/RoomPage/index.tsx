@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { Users } from "lucide-react";
 import { useMediaStream } from "./hooks/useMediaStream";
@@ -21,18 +21,24 @@ const gridClasses: Record<number, string> = {
 
 export default function RoomPage() {
   const { roomId } = useParams<{ roomId: string }>() as { roomId: string };
+  const streamRef = useRef<MediaStream>(new MediaStream());
 
   // ── Hooks (all logic lives here) ──
   const { preferences, setPreferences } = useRoomPreferences();
-  const { stream, isMuted, isCameraOff, toggleMute, toggleCamera } =
-    useMediaStream({
-      isMuted: preferences.isMuted,
-      isCameraOff: preferences.isCameraOff,
-    });
+
   const { socket, isConnected, sendSignal } = useSocket(roomId);
-  const { name, setName } = useUserProfile(isMuted, isCameraOff);
+
   const { peers, getPeerStream, createPeer, destroyPeer, rebindStream } =
     useWebRTC(sendSignal);
+  const { stream, isMuted, isCameraOff, toggleMute, toggleCamera } =
+    useMediaStream(
+      preferences.isMuted,
+      preferences.isCameraOff,
+      streamRef,
+      rebindStream,
+    );
+  const { name, setName } = useUserProfile(isMuted, isCameraOff);
+
   const { leaveRoom } = useRoomController({
     roomId,
     socket,
@@ -44,10 +50,6 @@ export default function RoomPage() {
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
   };
-
-  useEffect(() => {
-    rebindStream(stream);
-  }, [rebindStream, stream]);
 
   useEffect(() => {
     if (!stream) return;
@@ -107,7 +109,7 @@ export default function RoomPage() {
         >
           {/* Local Video */}
           <LocaleVideo
-            stream={stream}
+            streamRef={streamRef}
             isMuted={isMuted}
             isCameraOff={isCameraOff}
             isMirror={preferences.isLocalVideoMirrored}

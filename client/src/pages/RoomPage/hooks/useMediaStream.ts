@@ -1,20 +1,23 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-
-interface Options {
-  isMuted: boolean;
-  isCameraOff: boolean;
-}
+import {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  type RefObject,
+} from "react";
 
 /**
  * Manages local camera/microphone stream and mute/camera toggle controls.
  */
 export function useMediaStream(
-  options: Options = { isMuted: false, isCameraOff: false },
+  initIsMuted: boolean,
+  initIsCameraOff: boolean,
+  streamRef: RefObject<MediaStream>,
+  rebindStream: (stream: MediaStream) => void,
 ) {
   const [stream] = useState<MediaStream>(new MediaStream());
-  const [isMuted, setIsMuted] = useState(options.isMuted);
-  const [isCameraOff, setIsCameraOff] = useState(options.isCameraOff);
-  const streamRef = useRef<MediaStream>(stream);
+  const [isMuted, setIsMuted] = useState(initIsMuted);
+  const [isCameraOff, setIsCameraOff] = useState(initIsCameraOff);
   const audioStreamRef = useRef<MediaStream | null>(null);
   const videoStreamRef = useRef<MediaStream | null>(null);
 
@@ -39,6 +42,8 @@ export function useMediaStream(
             .forEach((track) => stream.addTrack(track));
         } catch {
           setIsMuted(true);
+        } finally {
+          rebindStream(stream);
         }
       }
     })();
@@ -50,7 +55,7 @@ export function useMediaStream(
         track.stop();
       });
     };
-  }, [isMuted]);
+  }, [isMuted, streamRef, rebindStream]);
 
   useEffect(() => {
     let isEffectActive = true;
@@ -73,6 +78,8 @@ export function useMediaStream(
             .forEach((track) => stream.addTrack(track));
         } catch {
           setIsCameraOff(true);
+        } finally {
+          rebindStream(stream);
         }
       }
     })();
@@ -85,14 +92,14 @@ export function useMediaStream(
       });
       videoStreamRef.current = null;
     };
-  }, [isCameraOff]);
+  }, [isCameraOff, streamRef, rebindStream]);
 
   useEffect(() => {
     const stream = streamRef.current;
     return () => {
       stream.getTracks().forEach((track) => track.stop());
     };
-  }, []);
+  }, [streamRef]);
 
   const toggleMute = useCallback(() => {
     setIsMuted(!isMuted);
@@ -102,24 +109,12 @@ export function useMediaStream(
     setIsCameraOff(!isCameraOff);
   }, [isCameraOff]);
 
-  const stopAll = useCallback(() => {
-    audioStreamRef.current?.getTracks().forEach((track) => track.stop());
-    videoStreamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-
-    audioStreamRef.current = null;
-    videoStreamRef.current = null;
-
-    setIsMuted(true);
-    setIsCameraOff(true);
-  }, []);
-
   return {
     stream,
+    streamRef,
     isMuted,
     isCameraOff,
     toggleMute,
     toggleCamera,
-    stopAll,
   };
 }

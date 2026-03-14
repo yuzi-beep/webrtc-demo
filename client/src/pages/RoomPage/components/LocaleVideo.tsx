@@ -1,15 +1,15 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, type RefObject } from "react";
 import { MicOff } from "lucide-react";
 
 export default function LocaleVideo({
-  stream,
+  streamRef,
   isMuted,
   isCameraOff,
   isMirror,
   allowEcho,
   name,
 }: {
-  stream: MediaStream | null;
+  streamRef: RefObject<MediaStream>;
   isMuted: boolean;
   isCameraOff: boolean;
   isMirror: boolean;
@@ -18,6 +18,7 @@ export default function LocaleVideo({
 }) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
+    const stream = streamRef.current;
     const videoEl = localVideoRef.current;
     if (!videoEl) return;
 
@@ -27,7 +28,7 @@ export default function LocaleVideo({
     }
 
     videoEl.srcObject = stream;
-  }, [stream, isCameraOff]);
+  }, [streamRef, isCameraOff]);
 
   return (
     <div

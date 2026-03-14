@@ -19,10 +19,13 @@ export function useWebRTC(
   sendSignal: (targetToken: string, signal: SimplePeer.SignalData) => void,
 ) {
   const [peers, setPeers] = useState<MerberMeta[]>([]);
+  const localStreamRef = useRef<MediaStream>(null);
   const peersRef = useRef<Map<string, SimplePeer.Instance>>(new Map());
   const streamsRef = useRef<Map<string, MediaStream>>(new Map());
   const peerMetaRef = useRef<Map<string, MerberMeta>>(new Map());
-  const localStreamRef = useRef<MediaStream | null>(null);
+  const peerBoundTracksRef = useRef<
+    Map<string, { audio?: MediaStreamTrack; video?: MediaStreamTrack }>
+  >(new Map());
 
   const updateState = useCallback(() => {
     setPeers(Array.from(peerMetaRef.current.values()));
@@ -52,6 +55,7 @@ export function useWebRTC(
         peer.destroy();
         peersRef.current.delete(peerToken);
       }
+      peerBoundTracksRef.current.delete(peerToken);
       streamsRef.current.delete(peerToken);
       peerMetaRef.current.delete(peerToken);
       updateState();
@@ -59,38 +63,49 @@ export function useWebRTC(
     [updateState],
   );
 
-  const rebindStream = useCallback((nextStream: MediaStream | null) => {
-    const prevStream = localStreamRef.current;
-    const prevTracks = prevStream?.getTracks() ?? [];
-    const nextTracks = nextStream?.getTracks() ?? [];
-    const prevTrackIds = new Set(prevTracks.map((track) => track.id));
-    const nextTrackIds = new Set(nextTracks.map((track) => track.id));
+  const rebindStream = useCallback((stream: MediaStream) => {
+    if (!stream) return;
+    localStreamRef.current = stream;
 
-    peersRef.current.forEach((peer) => {
-      prevTracks.forEach((track) => {
-        if (nextTrackIds.has(track.id)) return;
+    const audioTrack = stream.getAudioTracks()[0] ?? null;
+    const videoTrack = stream.getVideoTracks()[0] ?? null;
+
+    peersRef.current.forEach((peer, token) => {
+      const boundTracks = peerBoundTracksRef.current.get(token) ?? {};
+
+      const syncTrack = (
+        kind: "audio" | "video",
+        nextTrack: MediaStreamTrack | null,
+      ) => {
+        const prevTrack = boundTracks[kind] ?? null;
+        if (prevTrack?.id === nextTrack?.id) return;
+
         try {
-          if (prevStream) {
-            peer.removeTrack(track, prevStream);
+          if (prevTrack && nextTrack) {
+            peer.replaceTrack(prevTrack, nextTrack, stream);
+            boundTracks[kind] = nextTrack;
+            return;
+          }
+
+          if (!prevTrack && nextTrack) {
+            peer.addTrack(nextTrack, stream);
+            boundTracks[kind] = nextTrack;
+            return;
+          }
+
+          if (prevTrack && !nextTrack) {
+            peer.removeTrack(prevTrack, stream);
+            delete boundTracks[kind];
           }
         } catch {
-          // Ignore if track is not bound on this peer
+          return;
         }
-      });
+      };
 
-      nextTracks.forEach((track) => {
-        if (prevTrackIds.has(track.id)) return;
-        try {
-          if (nextStream) {
-            peer.addTrack(track, nextStream);
-          }
-        } catch {
-          // Ignore if track is already bound on this peer
-        }
-      });
+      syncTrack("audio", audioTrack);
+      syncTrack("video", videoTrack);
+      peerBoundTracksRef.current.set(token, boundTracks);
     });
-
-    localStreamRef.current = nextStream;
   }, []);
 
   const createPeer = useCallback(
@@ -105,8 +120,8 @@ export function useWebRTC(
 
       const peer = new SimplePeer({
         initiator: signal ? false : true,
+        stream: localStreamRef.current || undefined,
         trickle: true,
-        stream: localStreamRef.current ?? undefined,
         config: {
           iceServers: [
             { urls: "stun:stun.l.google.com:19302" },
@@ -150,7 +165,7 @@ export function useWebRTC(
       updateState();
       return peer;
     },
-    [destroyPeer, sendSignal, updateState, upsertPeerMeta],
+    [destroyPeer, rebindStream, sendSignal, updateState, upsertPeerMeta],
   );
 
   const getPeerStream = useCallback((peerId: string): MediaStream | null => {
@@ -171,7 +186,9 @@ export function useWebRTC(
 
     webrtcEvents.on("CHAT_SEND", handleChatSend);
 
-    const handleSyncMeta = (message: Extract<WebRTCEventMessage, { type: "SYNC_META" }>) => {
+    const handleSyncMeta = (
+      message: Extract<WebRTCEventMessage, { type: "SYNC_META" }>,
+    ) => {
       const serialized = JSON.stringify(message);
       peersRef.current.forEach((peer) => {
         try {
