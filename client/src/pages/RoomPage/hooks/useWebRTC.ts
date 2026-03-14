@@ -1,6 +1,7 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import SimplePeer from "simple-peer";
 import { webrtcEvents } from "../../../utils/event-bus/webrtc-events";
+import type { WebRTCEventMessage } from "@/types";
 
 export interface PeerInfo {
   id: string;
@@ -14,16 +15,6 @@ export interface MerberMeta {
   isCameraOff: boolean;
   status?: "connected" | "connecting";
 }
-
-export type WebRTCMessage =
-  | {
-      type: "MEDIA_STATE";
-      payload: { isMuted: boolean; isCameraOff: boolean };
-    }
-  | {
-      type: "CHAT_MESSAGE";
-      payload: { text: string; senderName: string; timestamp: number };
-    };
 
 /**
  * Manages WebRTC peer connections using simple-peer.
@@ -119,8 +110,8 @@ export function useWebRTC(
       peer.on("signal", (signal) => sendSignal(remotePeerId, signal));
       peer.on("data", (data) => {
         try {
-          const message = JSON.parse(data.toString()) as WebRTCMessage;
-          webrtcEvents.emit(message.type, message.payload, remotePeerId);
+          const message = JSON.parse(data.toString()) as WebRTCEventMessage;
+          webrtcEvents.emit(message);
         } catch {
           console.warn("Received invalid data from peer:", data);
         }
@@ -142,21 +133,27 @@ export function useWebRTC(
     return streamsRef.current.get(peerId) || null;
   }, []);
 
-  const sendMessage = useCallback((message: WebRTCMessage) => {
-    const serialized = JSON.stringify(message);
-    peersRef.current.forEach((peer) => {
-      try {
-        peer.send(serialized);
-      } catch {
-        // Ignore peers that are not ready to send
-      }
-    });
+  useEffect(() => {
+    const handleChatSend = (message: {
+      type: "CHAT_SEND";
+      senderId: string;
+      payload: { text: string; senderName: string; timestamp: number };
+    }) => {
+      const newMessage = { ...message, type: "CHAT_MESSAGE" };
+      const serialized = JSON.stringify(newMessage);
+      peersRef.current.forEach((peer) => peer.send(serialized));
+      webrtcEvents.emit(newMessage as WebRTCEventMessage);
+    };
+
+    webrtcEvents.on("CHAT_SEND", handleChatSend);
+    return () => {
+      webrtcEvents.off("CHAT_SEND", handleChatSend);
+    };
   }, []);
 
   return {
     peers,
     getPeerStream,
-    sendMessage,
     destroyPeer,
     createPeer,
     rebindStream,

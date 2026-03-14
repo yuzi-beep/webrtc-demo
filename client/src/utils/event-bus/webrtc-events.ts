@@ -1,39 +1,32 @@
-import type { WebRTCMessage } from "../../pages/RoomPage/hooks/useWebRTC";
+import type { WebRTCEventMessage } from "@/types";
 
-export type Listener<T> = (payload: T, senderId: string) => void;
+export type Listener<T extends MessageType> = (
+  message: Extract<WebRTCEventMessage, { type: T }>,
+) => void;
 
-type MessageType = WebRTCMessage["type"];
-type MessagePayload<T extends MessageType> = Extract<
-  WebRTCMessage,
-  { type: T }
->["payload"];
-type AnyListener = (payload: unknown, senderId: string) => void;
+type MessageType = WebRTCEventMessage["type"];
+type AnyListener = (message: WebRTCEventMessage) => void;
 
 class WebRTCEventBus {
   private listeners: Partial<Record<MessageType, Set<AnyListener>>> = {};
 
-  on<T extends MessageType>(type: T, callback: Listener<MessagePayload<T>>) {
-    if (!this.listeners[type])
-      this.listeners[type] = new Set<AnyListener>();
+  on<T extends MessageType>(type: T, callback: Listener<T>) {
+    if (!this.listeners[type]) this.listeners[type] = new Set<AnyListener>();
     this.listeners[type].add(callback as AnyListener);
   }
 
-  off<T extends MessageType>(type: T, callback: Listener<MessagePayload<T>>) {
+  off<T extends MessageType>(type: T, callback: Listener<T>) {
     const typeListeners = this.listeners[type];
     if (typeListeners) {
       typeListeners.delete(callback as AnyListener);
     }
   }
 
-  emit<T extends MessageType>(
-    type: T,
-    payload: MessagePayload<T>,
-    senderId: string,
-  ) {
-    const typeListeners = this.listeners[type];
+  emit(message: WebRTCEventMessage) {
+    const typeListeners = this.listeners[message.type];
     if (typeListeners) {
       typeListeners.forEach((callback) => {
-        (callback as Listener<MessagePayload<T>>)(payload, senderId);
+        (callback as AnyListener)(message);
       });
     }
   }

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type SimplePeer from "simple-peer";
 import {
@@ -15,89 +15,15 @@ import { useMediaStream } from "./hooks/useMediaStream";
 import { useSocket } from "./hooks/useSocket";
 import { useWebRTC } from "./hooks/useWebRTC";
 import { useRoomPreferences } from "./hooks/useRoomPreferences";
-import { webrtcEvents } from "../../utils/event-bus/webrtc-events";
 import RemoteVideo from "./components/RemoteVideo";
 import LocaleVideo from "./components/LocaleVideo";
-
-type ChatMessageItem = {
-  id: string;
-  senderId: string;
-  senderName: string;
-  text: string;
-  timestamp: number;
-  isSelf?: boolean;
-};
-
+import ChatPanel from "./components/ChatPanel";
 const gridClasses: Record<number, string> = {
   1: "grid-cols-1 grid-rows-1",
   2: "grid-cols-2 grid-rows-1",
   3: "grid-cols-2 grid-rows-2",
   4: "grid-cols-2 grid-rows-2",
 };
-
-function ChatPanel({
-  messages,
-  value,
-  onChange,
-  onSend,
-}: {
-  messages: ChatMessageItem[];
-  value: string;
-  onChange: (value: string) => void;
-  onSend: () => void;
-}) {
-  return (
-    <aside className="w-[320px] h-full border-l border-border-glass bg-bg-secondary/60 backdrop-blur-[10px] flex flex-col">
-      <div className="px-4 py-3 border-b border-border-glass text-sm font-medium text-text-primary">
-        Chat
-      </div>
-      <div className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-2">
-        {messages.length === 0 ? (
-          <p className="text-xs text-text-secondary text-center mt-3">
-            No messages yet
-          </p>
-        ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={`rounded-lg px-3 py-2 border ${
-                message.isSelf
-                  ? "bg-accent/10 border-accent/40"
-                  : "bg-bg-glass border-border-glass"
-              }`}
-            >
-              <div className="text-[11px] text-text-secondary mb-1">
-                {message.isSelf
-                  ? "You"
-                  : message.senderName || message.senderId}
-              </div>
-              <div className="text-sm text-text-primary wrap-break-word">
-                {message.text}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-      <div className="p-3 border-t border-border-glass flex items-center gap-2">
-        <input
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") onSend();
-          }}
-          placeholder="Type a message..."
-          className="flex-1 h-10 rounded-lg px-3 text-sm bg-bg-glass border border-border-glass text-text-primary placeholder:text-text-secondary focus:outline-none"
-        />
-        <button
-          onClick={onSend}
-          className="h-10 px-3 rounded-lg text-sm bg-accent/20 border border-accent text-accent hover:opacity-90"
-        >
-          Send
-        </button>
-      </div>
-    </aside>
-  );
-}
 
 export default function RoomPage() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -114,17 +40,9 @@ export default function RoomPage() {
     toggleCamera,
   } = useMediaStream();
   const { socket, isConnected, sendSignal, disconnect } = useSocket(roomId);
-  const {
-    peers,
-    getPeerStream,
-    sendMessage,
-    createPeer,
-    destroyPeer,
-    rebindStream,
-  } = useWebRTC(sendSignal);
+  const { peers, getPeerStream, createPeer, destroyPeer, rebindStream } =
+    useWebRTC(sendSignal);
   const { preferences, setPreferences } = useRoomPreferences();
-  const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState<ChatMessageItem[]>([]);
 
   // ── Handlers ──
   const copyLink = () => {
@@ -167,57 +85,6 @@ export default function RoomPage() {
     toggleMute,
     toggleCamera,
   ]);
-
-  useEffect(() => {
-    const handleChatMessage = (
-      payload: { text: string; senderName: string; timestamp: number },
-      senderId: string,
-    ) => {
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          id: `${payload.timestamp}-${senderId}-${prev.length}`,
-          senderId,
-          senderName: payload.senderName,
-          text: payload.text,
-          timestamp: payload.timestamp,
-        },
-      ]);
-    };
-
-    webrtcEvents.on("CHAT_MESSAGE", handleChatMessage);
-    return () => {
-      webrtcEvents.off("CHAT_MESSAGE", handleChatMessage);
-    };
-  }, []);
-
-  const handleSendChatMessage = useCallback(() => {
-    const text = chatInput.trim();
-    if (!text) return;
-
-    const message = {
-      type: "CHAT_MESSAGE" as const,
-      payload: {
-        text,
-        senderName: "You",
-        timestamp: Date.now(),
-      },
-    };
-
-    sendMessage(message);
-    setChatMessages((prev) => [
-      ...prev,
-      {
-        id: `${message.payload.timestamp}-self-${prev.length}`,
-        senderId: "self",
-        senderName: "You",
-        text,
-        timestamp: message.payload.timestamp,
-        isSelf: true,
-      },
-    ]);
-    setChatInput("");
-  }, [chatInput, sendMessage]);
 
   // Redirect on media error
   useEffect(() => {
@@ -319,12 +186,7 @@ export default function RoomPage() {
           })}
         </div>
 
-        <ChatPanel
-          messages={chatMessages}
-          value={chatInput}
-          onChange={setChatInput}
-          onSend={handleSendChatMessage}
-        />
+        <ChatPanel />
       </div>
 
       {/* Control Bar */}
