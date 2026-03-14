@@ -165,7 +165,7 @@ export function useWebRTC(
       updateState();
       return peer;
     },
-    [destroyPeer, rebindStream, sendSignal, updateState, upsertPeerMeta],
+    [destroyPeer, sendSignal, updateState, upsertPeerMeta],
   );
 
   const getPeerStream = useCallback((peerId: string): MediaStream | null => {
