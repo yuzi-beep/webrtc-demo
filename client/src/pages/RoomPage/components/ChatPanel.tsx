@@ -10,7 +10,7 @@ interface ChatMessageItem {
   timestamp: number;
   isSelf: boolean;
 }
-export default function ChatPanel() {
+export default function ChatPanel({ currentName }: { currentName: string }) {
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [token] = useState(() => getOrCreateToken());
@@ -52,7 +52,7 @@ export default function ChatPanel() {
       senderId: token,
       payload: {
         text,
-        senderName: "You",
+        senderName: currentName,
         timestamp,
       },
     });

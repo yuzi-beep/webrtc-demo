@@ -15,9 +15,11 @@ import { useMediaStream } from "./hooks/useMediaStream";
 import { useSocket } from "./hooks/useSocket";
 import { useWebRTC } from "./hooks/useWebRTC";
 import { useRoomPreferences } from "./hooks/useRoomPreferences";
+import { useUserProfile } from "./hooks/useUserProfile";
 import RemoteVideo from "./components/RemoteVideo";
 import LocaleVideo from "./components/LocaleVideo";
 import ChatPanel from "./components/ChatPanel";
+import UserMetaEditor from "./components/UserMetaEditor";
 const gridClasses: Record<number, string> = {
   1: "grid-cols-1 grid-rows-1",
   2: "grid-cols-2 grid-rows-1",
@@ -39,9 +41,15 @@ export default function RoomPage() {
     toggleMute,
     toggleCamera,
   } = useMediaStream();
-  const { socket, isConnected, sendSignal, disconnect } = useSocket(roomId);
+  const { socket, isConnected, sendSignal, disconnect, token } = useSocket(roomId);
+  const { name, setName } = useUserProfile(token);
   const { peers, getPeerStream, createPeer, destroyPeer, rebindStream } =
-    useWebRTC(sendSignal);
+    useWebRTC(sendSignal, {
+      token,
+      name,
+      isMuted,
+      isCameraOff,
+    });
   const { preferences, setPreferences } = useRoomPreferences();
 
   // ── Handlers ──
@@ -161,9 +169,12 @@ export default function RoomPage() {
         <span className="text-[13px] text-text-secondary font-mono bg-bg-glass py-1.5 px-3.5 rounded-full border border-border-glass">
           Room: {displayRoomId}
         </span>
-        <span className="text-[13px] text-text-secondary flex items-center gap-1.5">
-          <Users className="w-4 h-4" /> {totalParticipants} / 4
-        </span>
+        <div className="flex items-center gap-3">
+          <UserMetaEditor token={token} name={name} onChangeName={setName} />
+          <span className="text-[13px] text-text-secondary flex items-center gap-1.5">
+            <Users className="w-4 h-4" /> {totalParticipants} / 4
+          </span>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -178,6 +189,7 @@ export default function RoomPage() {
             stream={stream}
             isMuted={isMuted}
             isMirror={preferences.isLocalVideoMirrored}
+            name={name}
           />
 
           {peers.map((meta) => {
@@ -186,7 +198,7 @@ export default function RoomPage() {
           })}
         </div>
 
-        <ChatPanel />
+        <ChatPanel currentName={name} />
       </div>
 
       {/* Control Bar */}

@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import SimplePeer from "simple-peer";
 import { webrtcEvents } from "../../../utils/event-bus/webrtc-events";
-import type { WebRTCEventMessage } from "@/types";
+import type { WebRTCEventMessage, WebRTCTransportMessage } from "@/types";
 
 export interface MerberMeta {
   token: string;
@@ -11,39 +11,82 @@ export interface MerberMeta {
   status?: "connected" | "connecting";
 }
 
+interface LocalMetaPayload {
+  token: string;
+  name: string;
+  isMuted: boolean;
+  isCameraOff: boolean;
+}
+
 /**
  * Manages WebRTC peer connections using simple-peer.
  * Exposes RTC handlers; signaling transport is managed by caller.
  */
 export function useWebRTC(
   sendSignal: (targetToken: string, signal: SimplePeer.SignalData) => void,
+  localMeta: LocalMetaPayload,
 ) {
   const [peers, setPeers] = useState<MerberMeta[]>([]);
   const peersRef = useRef<Map<string, SimplePeer.Instance>>(new Map());
   const streamsRef = useRef<Map<string, MediaStream>>(new Map());
+  const peerMetaRef = useRef<Map<string, MerberMeta>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
 
   const updateState = useCallback(() => {
-    const result: MerberMeta[] = [];
-    peersRef.current.forEach((_, token) => {
-      result.push({
-        token,
-        name: token.slice(0, 6),
-        isMuted: false,
-        isCameraOff: false,
-      });
-    });
-    setPeers(result);
+    setPeers(Array.from(peerMetaRef.current.values()));
   }, []);
 
+  const upsertPeerMeta = useCallback(
+    (token: string, patch: Partial<MerberMeta>) => {
+      const currentMeta = peerMetaRef.current.get(token);
+      const nextMeta: MerberMeta = {
+        token,
+        name: currentMeta?.name ?? token.slice(0, 6),
+        isMuted: currentMeta?.isMuted ?? false,
+        isCameraOff: currentMeta?.isCameraOff ?? false,
+        status: currentMeta?.status ?? "connecting",
+        ...patch,
+      };
+      peerMetaRef.current.set(token, nextMeta);
+      updateState();
+    },
+    [updateState],
+  );
+
+  const buildSyncMetaMessage = useCallback((): Extract<WebRTCTransportMessage, { type: "SYNC_META" }> => {
+    return {
+      type: "SYNC_META",
+      senderId: localMeta.token,
+      payload: {
+        token: localMeta.token,
+        name: localMeta.name,
+        isMuted: localMeta.isMuted,
+        isCameraOff: localMeta.isCameraOff,
+      },
+    };
+  }, [localMeta.isCameraOff, localMeta.isMuted, localMeta.name, localMeta.token]);
+
+  const sendSyncMetaToPeer = useCallback(
+    (peer: SimplePeer.Instance) => {
+      try {
+        const message = buildSyncMetaMessage();
+        peer.send(JSON.stringify(message));
+      } catch {
+        // Ignore if data channel is not ready
+      }
+    },
+    [buildSyncMetaMessage],
+  );
+
   const destroyPeer = useCallback(
-    (peerId: string) => {
-      const peer = peersRef.current.get(peerId);
+    (peerToken: string) => {
+      const peer = peersRef.current.get(peerToken);
       if (peer) {
         peer.destroy();
-        peersRef.current.delete(peerId);
+        peersRef.current.delete(peerToken);
       }
-      streamsRef.current.delete(peerId);
+      streamsRef.current.delete(peerToken);
+      peerMetaRef.current.delete(peerToken);
       updateState();
     },
     [updateState],
@@ -89,6 +132,8 @@ export function useWebRTC(
         return existingPeer;
       }
 
+      upsertPeerMeta(remoteToken, { status: "connecting" });
+
       const peer = new SimplePeer({
         initiator: signal ? false : true,
         trickle: true,
@@ -103,9 +148,23 @@ export function useWebRTC(
       if (signal) peer.signal(signal);
 
       peer.on("signal", (signal) => sendSignal(remoteToken, signal));
+      peer.on("connect", () => {
+        upsertPeerMeta(remoteToken, { status: "connected" });
+        sendSyncMetaToPeer(peer);
+      });
       peer.on("data", (data) => {
         try {
           const message = JSON.parse(data.toString()) as WebRTCEventMessage;
+          if (message.type === "SYNC_META") {
+            const { token, name, isMuted, isCameraOff } = message.payload;
+            upsertPeerMeta(token, {
+              name,
+              isMuted,
+              isCameraOff,
+              status: "connected",
+            });
+            return;
+          }
           webrtcEvents.emit(message);
         } catch {
           console.warn("Received invalid data from peer:", data);
@@ -113,6 +172,7 @@ export function useWebRTC(
       });
       peer.on("stream", (remoteStream) => {
         streamsRef.current.set(remoteToken, remoteStream);
+        upsertPeerMeta(remoteToken, { status: "connected" });
         updateState();
       });
       peer.on("close", () => destroyPeer(remoteToken));
@@ -121,7 +181,7 @@ export function useWebRTC(
       updateState();
       return peer;
     },
-    [destroyPeer, sendSignal, updateState],
+    [destroyPeer, sendSignal, sendSyncMetaToPeer, updateState, upsertPeerMeta],
   );
 
   const getPeerStream = useCallback((peerId: string): MediaStream | null => {
@@ -145,6 +205,19 @@ export function useWebRTC(
       webrtcEvents.off("CHAT_SEND", handleChatSend);
     };
   }, []);
+
+  useEffect(() => {
+    const message = buildSyncMetaMessage();
+    const serializedMessage = JSON.stringify(message);
+
+    peersRef.current.forEach((peer) => {
+      try {
+        peer.send(serializedMessage);
+      } catch {
+        // Ignore if data channel is not ready
+      }
+    });
+  }, [buildSyncMetaMessage]);
 
   return {
     peers,

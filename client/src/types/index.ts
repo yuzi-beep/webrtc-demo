@@ -10,10 +10,10 @@ export type WebRTCTransportMessage =
       payload: { text: string; senderName: string; timestamp: number };
     }
   | {
-      type: "SYNC_PROFILE";
+      type: "SYNC_META";
       senderId: string;
       payload: {
-        id: string;
+        token: string;
         name: string;
         isMuted: boolean;
         isCameraOff: boolean;
