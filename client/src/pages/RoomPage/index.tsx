@@ -3,14 +3,14 @@ import { Users } from "lucide-react";
 import { useMediaStream } from "./hooks/useMediaStream";
 import { useSocket } from "./hooks/useSocket";
 import { useWebRTC } from "./hooks/useWebRTC";
-import { useRoomPreferences } from "./hooks/useRoomPreferences";
-import { useUserProfile } from "./hooks/useUserProfile";
+import { usePreferences } from "./hooks/useRoomPreferences";
 import RemoteVideo from "./components/RemoteVideo";
 import LocaleVideo from "./components/LocaleVideo";
 import ChatPanel from "./components/ChatPanel";
 import UserMetaEditor from "./components/UserMetaEditor";
 import ControlBar from "./components/ControlBar";
 import { useRoomController } from "./hooks/useRoomController";
+import { useEffect } from "react";
 const gridClasses: Record<number, string> = {
   1: "grid-cols-1 grid-rows-1",
   2: "grid-cols-2 grid-rows-1",
@@ -22,18 +22,25 @@ export default function RoomPage() {
   const { roomId } = useParams<{ roomId: string }>() as { roomId: string };
 
   // ── Hooks (all logic lives here) ──
-  const { preferences, setPreferences } = useRoomPreferences();
+  const {
+    preferences: {
+      isMuted,
+      isCameraOff,
+      name,
+      isLocalVideoMirrored,
+      allowEcho,
+    },
+    setPreferences,
+  } = usePreferences();
   const { socket, isConnected, sendSignal } = useSocket(roomId);
   const { peers, getPeerStream, createPeer, destroyPeer, rebindStream } =
     useWebRTC(sendSignal);
-  const { streamRef, isMuted, isCameraOff, toggleMute, toggleCamera } =
-    useMediaStream(
-      preferences.isMuted,
-      preferences.isCameraOff,
-      rebindStream,
-    );
-  const { name, setName } = useUserProfile(isMuted, isCameraOff);
-
+  const { streamRef, toggleMute, toggleCamera } = useMediaStream(
+    isMuted,
+    isCameraOff,
+    setPreferences,
+    rebindStream,
+  );
   const { leaveRoom } = useRoomController({
     roomId,
     socket,
@@ -48,6 +55,15 @@ export default function RoomPage() {
 
   const totalParticipants = 1 + peers.length;
   const displayRoomId = roomId ? roomId.slice(0, 8) + "..." : "";
+
+  useEffect(() => {
+    setPreferences((prev) => ({
+      ...prev,
+      name,
+      isMuted,
+      isCameraOff,
+    }));
+  }, [isMuted, isCameraOff, name, setPreferences]);
 
   // ── Main UI ──
   return (
@@ -68,7 +84,10 @@ export default function RoomPage() {
           Room: {displayRoomId}
         </span>
         <div className="flex items-center gap-3">
-          <UserMetaEditor name={name} onSave={setName} />
+          <UserMetaEditor
+            name={name}
+            onSave={(name) => setPreferences((prev) => ({ ...prev, name }))}
+          />
           <span className="text-[13px] text-text-secondary flex items-center gap-1.5">
             <Users className="w-4 h-4" /> {totalParticipants} / 4
           </span>
@@ -87,8 +106,8 @@ export default function RoomPage() {
             streamRef={streamRef}
             isMuted={isMuted}
             isCameraOff={isCameraOff}
-            isMirror={preferences.isLocalVideoMirrored}
-            allowEcho={preferences.allowEcho}
+            isMirror={isLocalVideoMirrored}
+            allowEcho={allowEcho}
             name={name}
           />
 
@@ -104,26 +123,14 @@ export default function RoomPage() {
       <ControlBar
         isMuted={isMuted}
         isCameraOff={isCameraOff}
-        isLocalVideoMirrored={preferences.isLocalVideoMirrored}
-        allowEcho={preferences.allowEcho}
-        onToggleMute={() => {
-          toggleMute();
-          setPreferences((prev) => ({
-            ...prev,
-            isMuted: !isMuted,
-          }));
-        }}
-        onToggleCamera={() => {
-          toggleCamera();
-          setPreferences((prev) => ({
-            ...prev,
-            isCameraOff: !isCameraOff,
-          }));
-        }}
+        isLocalVideoMirrored={isLocalVideoMirrored}
+        allowEcho={allowEcho}
+        onToggleMute={toggleMute}
+        onToggleCamera={toggleCamera}
         onToggleMirror={() =>
           setPreferences((prev) => ({
             ...prev,
-            isLocalVideoMirrored: !preferences.isLocalVideoMirrored,
+            isLocalVideoMirrored: !prev.isLocalVideoMirrored,
           }))
         }
         onToggleEcho={() =>

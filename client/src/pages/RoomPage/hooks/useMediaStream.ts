@@ -1,23 +1,40 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-} from "react";
+import { useEffect, useRef, useCallback } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import type { RoomPreferences } from "./useRoomPreferences";
 
 /**
  * Manages local camera/microphone stream and mute/camera toggle controls.
  */
 export function useMediaStream(
-  initIsMuted: boolean,
-  initIsCameraOff: boolean,
+  isMuted: boolean,
+  isCameraOff: boolean,
+  setPreferences: Dispatch<SetStateAction<RoomPreferences>>,
   rebindStream: (stream: MediaStream) => void,
 ) {
-  const [isMuted, setIsMuted] = useState(initIsMuted);
-  const [isCameraOff, setIsCameraOff] = useState(initIsCameraOff);
   const streamRef = useRef<MediaStream>(new MediaStream());
   const audioStreamRef = useRef<MediaStream | null>(null);
   const videoStreamRef = useRef<MediaStream | null>(null);
+
+  const toggleMute = useCallback(
+    (isMuted?: boolean) => {
+      setPreferences((prev) => ({
+        ...prev,
+        isMuted: isMuted !== undefined ? isMuted : !prev.isMuted,
+      }));
+    },
+    [setPreferences],
+  );
+
+  const toggleCamera = useCallback(
+    (isCameraOff?: boolean) => {
+      setPreferences((prev) => ({
+        ...prev,
+        isCameraOff:
+          isCameraOff !== undefined ? isCameraOff : !prev.isCameraOff,
+      }));
+    },
+    [setPreferences],
+  );
 
   useEffect(() => {
     let isEffectActive = true;
@@ -39,7 +56,7 @@ export function useMediaStream(
             .getAudioTracks()
             .forEach((track) => stream.addTrack(track));
         } catch {
-          setIsMuted(true);
+          toggleMute(true);
         } finally {
           rebindStream(stream);
         }
@@ -53,7 +70,7 @@ export function useMediaStream(
         track.stop();
       });
     };
-  }, [isMuted, streamRef, rebindStream]);
+  }, [isMuted, streamRef, rebindStream, toggleMute]);
 
   useEffect(() => {
     let isEffectActive = true;
@@ -75,7 +92,7 @@ export function useMediaStream(
             .getVideoTracks()
             .forEach((track) => stream.addTrack(track));
         } catch {
-          setIsCameraOff(true);
+          toggleCamera(true);
         } finally {
           rebindStream(stream);
         }
@@ -90,7 +107,7 @@ export function useMediaStream(
       });
       videoStreamRef.current = null;
     };
-  }, [isCameraOff, streamRef, rebindStream]);
+  }, [isCameraOff, streamRef, rebindStream, toggleCamera]);
 
   useEffect(() => {
     const stream = streamRef.current;
@@ -99,18 +116,8 @@ export function useMediaStream(
     };
   }, [streamRef]);
 
-  const toggleMute = useCallback(() => {
-    setIsMuted(!isMuted);
-  }, [isMuted]);
-
-  const toggleCamera = useCallback(() => {
-    setIsCameraOff(!isCameraOff);
-  }, [isCameraOff]);
-
   return {
     streamRef,
-    isMuted,
-    isCameraOff,
     toggleMute,
     toggleCamera,
   };

@@ -1,6 +1,10 @@
+import { webrtcEvents } from "@/utils/event-bus/webrtc-events";
+import { getOrCreateToken } from "@/utils/token-identity";
 import { useEffect, useState } from "react";
 
-type RoomPreferences = {
+export type RoomPreferences = {
+  name: string;
+  token: string;
   isLocalVideoMirrored: boolean;
   isMuted: boolean;
   isCameraOff: boolean;
@@ -13,6 +17,8 @@ const DEFAULT_PREFERENCES: RoomPreferences = {
   isMuted: false,
   isCameraOff: false,
   allowEcho: false,
+  name: `Guest-${Date.now().toString(36).slice(-4)}`,
+  token: getOrCreateToken(),
 };
 
 function getInitialPreferences(): RoomPreferences {
@@ -30,16 +36,33 @@ function getInitialPreferences(): RoomPreferences {
       isMuted: parsed.isMuted ?? DEFAULT_PREFERENCES.isMuted,
       isCameraOff: parsed.isCameraOff ?? DEFAULT_PREFERENCES.isCameraOff,
       allowEcho: parsed.allowEcho ?? DEFAULT_PREFERENCES.allowEcho,
+      name: parsed.name ?? DEFAULT_PREFERENCES.name,
+      token: parsed.token ?? DEFAULT_PREFERENCES.token,
     };
   } catch {
     return DEFAULT_PREFERENCES;
   }
 }
 
-export function useRoomPreferences() {
+export function usePreferences() {
   const [preferences, setPreferences] = useState<RoomPreferences>(() =>
     getInitialPreferences(),
   );
+
+  const { token, name, isMuted, isCameraOff } = preferences;
+
+  useEffect(() => {
+    webrtcEvents.emit({
+      type: "SYNC_META",
+      senderId: token,
+      payload: {
+        token,
+        name,
+        isMuted,
+        isCameraOff,
+      },
+    });
+  }, [token, name, isMuted, isCameraOff]);
 
   useEffect(() => {
     window.localStorage.setItem(
