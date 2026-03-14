@@ -4,18 +4,28 @@ import { MicOff } from "lucide-react";
 export default function LocaleVideo({
   stream,
   isMuted,
+  isCameraOff,
   isMirror,
   name,
 }: {
   stream: MediaStream | null;
   isMuted: boolean;
+  isCameraOff: boolean;
   isMirror: boolean;
   name: string;
 }) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
-    if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-  }, [stream]);
+    const videoEl = localVideoRef.current;
+    if (!videoEl) return;
+
+    if (isCameraOff) {
+      videoEl.load();
+      return;
+    }
+
+    videoEl.srcObject = stream;
+  }, [stream, isCameraOff]);
 
   return (
     <div

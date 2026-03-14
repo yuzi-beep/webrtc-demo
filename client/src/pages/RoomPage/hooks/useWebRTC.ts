@@ -61,13 +61,14 @@ export function useWebRTC(
 
   const rebindStream = useCallback((nextStream: MediaStream | null) => {
     const prevStream = localStreamRef.current;
-    if (prevStream === nextStream) return;
+    const prevTracks = prevStream?.getTracks() ?? [];
+    const nextTracks = nextStream?.getTracks() ?? [];
+    const prevTrackIds = new Set(prevTracks.map((track) => track.id));
+    const nextTrackIds = new Set(nextTracks.map((track) => track.id));
 
     peersRef.current.forEach((peer) => {
-      const oldTracks = prevStream?.getTracks() ?? [];
-      const newTracks = nextStream?.getTracks() ?? [];
-
-      oldTracks.forEach((track) => {
+      prevTracks.forEach((track) => {
+        if (nextTrackIds.has(track.id)) return;
         try {
           if (prevStream) {
             peer.removeTrack(track, prevStream);
@@ -77,7 +78,8 @@ export function useWebRTC(
         }
       });
 
-      newTracks.forEach((track) => {
+      nextTracks.forEach((track) => {
+        if (prevTrackIds.has(track.id)) return;
         try {
           if (nextStream) {
             peer.addTrack(track, nextStream);

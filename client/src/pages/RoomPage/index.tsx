@@ -1,6 +1,5 @@
-import { useRef, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import type SimplePeer from "simple-peer";
+import { useRef, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import {
   FlipHorizontal2,
   Link2,
@@ -20,6 +19,7 @@ import RemoteVideo from "./components/RemoteVideo";
 import LocaleVideo from "./components/LocaleVideo";
 import ChatPanel from "./components/ChatPanel";
 import UserMetaEditor from "./components/UserMetaEditor";
+import { useRoomController } from "./hooks/useRoomController";
 const gridClasses: Record<number, string> = {
   1: "grid-cols-1 grid-rows-1",
   2: "grid-cols-2 grid-rows-1",
@@ -28,35 +28,30 @@ const gridClasses: Record<number, string> = {
 };
 
 export default function RoomPage() {
-  const { roomId } = useParams<{ roomId: string }>();
-  const navigate = useNavigate();
+  const { roomId } = useParams<{ roomId: string }>() as { roomId: string };
 
   // ── Hooks (all logic lives here) ──
-  const {
-    stream,
-    error,
-    isMuted,
-    isCameraOff,
-    stopAll,
-    toggleMute,
-    toggleCamera,
-  } = useMediaStream();
-  const { socket, isConnected, sendSignal, disconnect } = useSocket(roomId);
+  const { preferences, setPreferences } = useRoomPreferences();
+  const { stream, isMuted, isCameraOff, toggleMute, toggleCamera } =
+    useMediaStream({
+      isMuted: preferences.isMuted,
+      isCameraOff: preferences.isCameraOff,
+    });
+  const { socket, isConnected, sendSignal } = useSocket(roomId);
   const { name, setName } = useUserProfile(isMuted, isCameraOff);
   const { peers, getPeerStream, createPeer, destroyPeer, rebindStream } =
     useWebRTC(sendSignal);
-  const { preferences, setPreferences } = useRoomPreferences();
+  const { leaveRoom } = useRoomController({
+    roomId,
+    socket,
+    createPeer,
+    destroyPeer,
+  });
 
   // ── Handlers ──
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
   };
-
-  const leaveRoom = useCallback(() => {
-    stopAll();
-    disconnect();
-    navigate("/");
-  }, [stopAll, disconnect, navigate]);
 
   // Attach local stream to video element
   const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -88,60 +83,6 @@ export default function RoomPage() {
     toggleMute,
     toggleCamera,
   ]);
-
-  // Redirect on media error
-  useEffect(() => {
-    if (error) {
-      alert(error);
-      navigate("/");
-    }
-  }, [error, navigate]);
-
-  useEffect(() => {
-    if (!socket || !roomId) return;
-
-    const handleRoomFull = () => {
-      leaveRoom();
-    };
-    const handleSignal = (data: {
-      senderToken: string;
-      signal: SimplePeer.SignalData;
-    }) => {
-      const { senderToken, signal } = data;
-      console.log("Received signal from token", senderToken);
-      createPeer(senderToken, signal);
-    };
-    const handleTokenConnected = (data: string) => {
-      console.log("Token connected:", data);
-    };
-    const handleTokenDisconnected = (data: string) => {
-      console.log("Token disconnected:", data);
-      destroyPeer(data);
-    };
-    const handleExistingTokens = (data: string[]) => {
-      console.log("Existing tokens in room:", data);
-      data.forEach((peerToken) => createPeer(peerToken));
-    };
-    const handleConnectJoin = () => {
-      socket.emit("join-room", roomId);
-    };
-
-    socket.on("room-full", handleRoomFull);
-    socket.on("signal", handleSignal);
-    socket.on("token-connected", handleTokenConnected);
-    socket.on("token-disconnected", handleTokenDisconnected);
-    socket.on("existing-tokens", handleExistingTokens);
-    socket.on("connect", handleConnectJoin);
-
-    return () => {
-      socket.off("room-full", handleRoomFull);
-      socket.off("signal", handleSignal);
-      socket.off("token-connected", handleTokenConnected);
-      socket.off("token-disconnected", handleTokenDisconnected);
-      socket.off("existing-tokens", handleExistingTokens);
-      socket.off("connect", handleConnectJoin);
-    };
-  }, [socket, roomId, leaveRoom, createPeer, destroyPeer]);
 
   const totalParticipants = 1 + peers.length;
   const displayRoomId = roomId ? roomId.slice(0, 8) + "..." : "";
@@ -183,6 +124,7 @@ export default function RoomPage() {
           <LocaleVideo
             stream={stream}
             isMuted={isMuted}
+            isCameraOff={isCameraOff}
             isMirror={preferences.isLocalVideoMirrored}
             name={name}
           />

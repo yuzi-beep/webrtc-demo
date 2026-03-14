@@ -13,8 +13,17 @@ export default function RemoteVideo({
   const [muted, setMuted] = useState(false);
 
   useEffect(() => {
-    if (ref.current) ref.current.srcObject = stream;
-  }, [stream]);
+    const videoEl = ref.current;
+    if (!videoEl) return;
+
+    if (meta.isCameraOff) {
+      videoEl.srcObject = null;
+      videoEl.load();
+      return;
+    }
+
+    videoEl.srcObject = stream;
+  }, [stream, meta.isCameraOff]);
   return (
     <>
       <div
