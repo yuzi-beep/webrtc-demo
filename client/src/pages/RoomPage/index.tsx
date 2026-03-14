@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { Users } from "lucide-react";
 import { useMediaStream } from "./hooks/useMediaStream";
@@ -21,20 +20,16 @@ const gridClasses: Record<number, string> = {
 
 export default function RoomPage() {
   const { roomId } = useParams<{ roomId: string }>() as { roomId: string };
-  const streamRef = useRef<MediaStream>(new MediaStream());
 
   // ── Hooks (all logic lives here) ──
   const { preferences, setPreferences } = useRoomPreferences();
-
   const { socket, isConnected, sendSignal } = useSocket(roomId);
-
   const { peers, getPeerStream, createPeer, destroyPeer, rebindStream } =
     useWebRTC(sendSignal);
-  const { stream, isMuted, isCameraOff, toggleMute, toggleCamera } =
+  const { streamRef, isMuted, isCameraOff, toggleMute, toggleCamera } =
     useMediaStream(
       preferences.isMuted,
       preferences.isCameraOff,
-      streamRef,
       rebindStream,
     );
   const { name, setName } = useUserProfile(isMuted, isCameraOff);
@@ -50,26 +45,6 @@ export default function RoomPage() {
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
   };
-
-  useEffect(() => {
-    if (!stream) return;
-
-    if (preferences.isMuted !== isMuted) {
-      toggleMute();
-    }
-
-    if (preferences.isCameraOff !== isCameraOff) {
-      toggleCamera();
-    }
-  }, [
-    stream,
-    preferences.isMuted,
-    preferences.isCameraOff,
-    isMuted,
-    isCameraOff,
-    toggleMute,
-    toggleCamera,
-  ]);
 
   const totalParticipants = 1 + peers.length;
   const displayRoomId = roomId ? roomId.slice(0, 8) + "..." : "";

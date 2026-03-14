@@ -3,7 +3,6 @@ import {
   useRef,
   useState,
   useCallback,
-  type RefObject,
 } from "react";
 
 /**
@@ -12,12 +11,11 @@ import {
 export function useMediaStream(
   initIsMuted: boolean,
   initIsCameraOff: boolean,
-  streamRef: RefObject<MediaStream>,
   rebindStream: (stream: MediaStream) => void,
 ) {
-  const [stream] = useState<MediaStream>(new MediaStream());
   const [isMuted, setIsMuted] = useState(initIsMuted);
   const [isCameraOff, setIsCameraOff] = useState(initIsCameraOff);
+  const streamRef = useRef<MediaStream>(new MediaStream());
   const audioStreamRef = useRef<MediaStream | null>(null);
   const videoStreamRef = useRef<MediaStream | null>(null);
 
@@ -110,7 +108,6 @@ export function useMediaStream(
   }, [isCameraOff]);
 
   return {
-    stream,
     streamRef,
     isMuted,
     isCameraOff,
