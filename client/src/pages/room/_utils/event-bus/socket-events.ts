@@ -15,13 +15,17 @@ class SocketEventBus {
   on<T extends MessageType>(type: T, callback: Listener<T>) {
     if (!this.listeners[type]) this.listeners[type] = new Set<AnyListener>();
     this.listeners[type].add(callback as AnyListener);
+    return () => this.off(type, callback);
   }
 
-  off<T extends MessageType>(type: T, callback: Listener<T>) {
-    const typeListeners = this.listeners[type];
-    if (typeListeners) {
-      typeListeners.delete(callback as AnyListener);
+  off<T extends MessageType>(type: T, callback?: Listener<T>) {
+    if (!callback) {
+      this.listeners[type] = undefined;
+      return;
     }
+    const typeListeners = this.listeners[type];
+    if (typeListeners) 
+      typeListeners.delete(callback as AnyListener);
   }
 
   send(message: SocketSendMessage) {
@@ -38,6 +42,10 @@ class SocketEventBus {
         (callback as AnyListener)(message);
       });
     }
+  }
+
+  offAny() {
+    this.listeners = {};
   }
 }
 

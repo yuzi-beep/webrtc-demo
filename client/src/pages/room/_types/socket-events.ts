@@ -1,9 +1,25 @@
 import type SimplePeer from "simple-peer";
 
-export type SocketReceiveMessage = {
-  type: "RECEIVE_SIGNAL";
-  payload: { senderToken: string; signal: SimplePeer.SignalData };
-};
+export type SocketSystemEventMessage =
+  | {
+      type: "CONNECTED";
+    }
+  | {
+      type: "DISCONNECTED";
+    };
+
+export type SocketReceiveMessage =
+  | {
+      type: "RECEIVE_SIGNAL";
+      payload: { senderToken: string; signal: SimplePeer.SignalData };
+    }
+  | {
+      type: "ROOM_FULL";
+    }
+  | {
+      type: "EXISTING_TOKENS";
+      payload: string[];
+    };
 
 export type SocketSendMessage =
   | {
@@ -21,6 +37,9 @@ export type SocketInternalMessage = {
 };
 
 export type SocketEventMessage =
+  | SocketSystemEventMessage
   | SocketReceiveMessage
   | SocketSendMessage
   | SocketInternalMessage;
+
+export type SocketEventType = SocketEventMessage["type"];

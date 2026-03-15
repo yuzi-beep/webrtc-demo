@@ -79,7 +79,9 @@ export class SignalingGateway
     );
 
     const room = this.server.sockets.adapter.rooms.get(roomId);
-    const existingMembers: string[] = room ? Array.from(room) : [];
+    const existingMembers: string[] = room
+      ? Array.from(room).filter((id) => id !== socket.id)
+      : [];
     const existingTokens = Array.from(
       new Set(
         existingMembers
@@ -90,7 +92,7 @@ export class SignalingGateway
 
     if (existingMembers.length >= 4) {
       this.logger.warn(`Room ${roomId} is full. Rejecting client ${socket.id}`);
-      socket.emit('room-full');
+      socket.emit('ROOM_FULL');
       return;
     }
 
@@ -101,12 +103,8 @@ export class SignalingGateway
       `Client ${socket.id} (token: ${token}) joined room: ${roomId}. ` +
         `Total now: ${existingMembers.length + 1}`,
     );
-
-    // Notify existing members that a new token has connected
-    socket.to(roomId).emit('token-connected', token);
-
     // Tell the new token about all existing members
-    socket.emit('existing-tokens', existingTokens);
+    socket.emit('EXISTING_TOKENS', existingTokens);
   }
 
   /**
@@ -133,7 +131,7 @@ export class SignalingGateway
       `Relaying signal from token ${senderToken} (socket ${socket.id}) to token ${targetToken} (socket ${targetSocketId})`,
     );
 
-    this.server.to(targetSocketId).emit('signal', {
+    this.server.to(targetSocketId).emit('RECEIVE_SIGNAL', {
       senderToken,
       signal,
     });
