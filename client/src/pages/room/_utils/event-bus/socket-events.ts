@@ -27,11 +27,7 @@ class SocketEventBus {
     return () => this.off(type, callback);
   }
 
-  off<T extends MessageType>(type: T, callback?: Listener<T>) {
-    if (!callback) {
-      this.listeners[type] = undefined;
-      return;
-    }
+  off<T extends MessageType>(type: T, callback: Listener<T>) {
     const typeListeners = this.listeners[type];
     if (typeListeners) typeListeners.delete(callback as AnyListener);
   }
