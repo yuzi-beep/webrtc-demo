@@ -2,8 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './index.css';
-import HomePage from './pages/HomePage';
-import RoomPage from './pages/RoomPage';
+import HomePage from './pages/home';
+import RoomPage from './pages/room';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

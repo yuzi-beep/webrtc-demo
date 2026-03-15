@@ -1,8 +1,8 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import SimplePeer from "simple-peer";
 import { webrtcEvents } from "../_utils/event-bus/webrtc-events";
-import { socketEvents } from "@/pages/RoomPage/_utils/event-bus/socket-events";
-import type { MerberMeta, WebRTCEventMessage } from "@/pages/RoomPage/_types";
+import { socketEvents } from "@/pages/room/_utils/event-bus/socket-events";
+import type { MerberMeta, WebRTCEventMessage } from "@/pages/room/_types";
 
 /**
  * Manages WebRTC peer connections using simple-peer.

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { io } from "socket.io-client";
-import { socketEvents } from "@/pages/RoomPage/_utils/event-bus/socket-events";
-import type { SocketEventMessage } from "@/pages/RoomPage/_types";
+import { socketEvents } from "@/pages/room/_utils/event-bus/socket-events";
+import type { SocketEventMessage } from "@/pages/room/_types";
 
 const SIGNALING_SERVER = "http://localhost:3000";
 

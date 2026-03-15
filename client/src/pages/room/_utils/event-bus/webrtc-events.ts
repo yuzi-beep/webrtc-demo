@@ -1,12 +1,12 @@
-import type { SocketEventMessage } from "@/pages/RoomPage/_types";
+import type { WebRTCEventMessage } from "@/pages/room/_types";
 
-type MessageType = SocketEventMessage["type"];
-type AnyListener = (message: SocketEventMessage) => void;
+type MessageType = WebRTCEventMessage["type"];
+type AnyListener = (message: WebRTCEventMessage) => void;
 type Listener<T extends MessageType> = (
-  message: Extract<SocketEventMessage, { type: T }>,
+  message: Extract<WebRTCEventMessage, { type: T }>,
 ) => void;
 
-class SocketEventBus {
+class WebRTCEventBus {
   private listeners: Partial<Record<MessageType, Set<AnyListener>>> = {};
 
   on<T extends MessageType>(type: T, callback: Listener<T>) {
@@ -21,7 +21,7 @@ class SocketEventBus {
     }
   }
 
-  emit(message: SocketEventMessage) {
+  emit(message: WebRTCEventMessage) {
     const typeListeners = this.listeners[message.type];
     if (typeListeners) {
       typeListeners.forEach((callback) => {
@@ -31,4 +31,4 @@ class SocketEventBus {
   }
 }
 
-export const socketEvents = new SocketEventBus();
+export const webrtcEvents = new WebRTCEventBus();

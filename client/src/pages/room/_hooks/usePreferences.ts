@@ -1,4 +1,4 @@
-import { webrtcEvents } from "@/pages/RoomPage/_utils/event-bus/webrtc-events";
+import { webrtcEvents } from "@/pages/room/_utils/event-bus/webrtc-events";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
