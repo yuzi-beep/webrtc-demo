@@ -1,15 +1,15 @@
 import { useParams } from "react-router-dom";
 import { Users } from "lucide-react";
-import { useMediaStream } from "./_hooks/useMediaStream";
-import { useSocket } from "./_hooks/useSocket";
-import { useWebRTC } from "./_hooks/useWebRTC";
-import { usePreferences } from "./_hooks/usePreferences";
-import RemoteVideo from "./_components/RemoteVideo";
-import LocaleVideo from "./_components/LocaleVideo";
-import ChatPanel from "./_components/ChatPanel";
-import UserMetaEditor from "./_components/UserMetaEditor";
-import ControlBar from "./_components/ControlBar";
-import { useRoomController } from "./_hooks/useRoomController";
+import { useMediaStream } from "@room/_hooks/useMediaStream";
+import { useSocket } from "@room/_hooks/useSocket";
+import { useWebRTC } from "@room/_hooks/useWebRTC";
+import { usePreferences } from "@room/_hooks/usePreferences";
+import RemoteVideo from "@room/_components/RemoteVideo";
+import LocaleVideo from "@room/_components/LocaleVideo";
+import ChatPanel from "@room/_components/ChatPanel";
+import UserMetaEditor from "@room/_components/UserMetaEditor";
+import ControlBar from "@room/_components/ControlBar";
+import { useRoomController } from "@room/_hooks/useRoomController";
 import { useEffect } from "react";
 const gridClasses: Record<number, string> = {
   1: "grid-cols-1 grid-rows-1",
