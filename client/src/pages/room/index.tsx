@@ -31,10 +31,14 @@ export default function RoomPage() {
       token,
     },
     setPreferences,
+    toggleCamera,
+    toggleMute,
+    toggleEcho,
+    toggleLocalVideoMirror,
   } = usePreferences();
   useSocket(roomId, token);
   const { peers, getPeerStream, createPeer, rebindStream } = useWebRTC();
-  const { streamRef, toggleMute, toggleCamera } = useMediaStream(
+  const { streamRef } = useMediaStream(
     isMuted,
     isCameraOff,
     setPreferences,
@@ -115,18 +119,8 @@ export default function RoomPage() {
         allowEcho={allowEcho}
         onToggleMute={toggleMute}
         onToggleCamera={toggleCamera}
-        onToggleMirror={() =>
-          setPreferences((prev) => ({
-            ...prev,
-            isLocalVideoMirrored: !prev.isLocalVideoMirrored,
-          }))
-        }
-        onToggleEcho={() =>
-          setPreferences((prev) => ({
-            ...prev,
-            allowEcho: !prev.allowEcho,
-          }))
-        }
+        onToggleMirror={toggleLocalVideoMirror}
+        onToggleEcho={toggleEcho}
         onCopyLink={copyLink}
         onLeaveRoom={leaveRoom}
       />

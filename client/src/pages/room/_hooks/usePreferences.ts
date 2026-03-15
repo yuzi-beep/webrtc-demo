@@ -1,5 +1,5 @@
 import { webrtcEvents } from "@/pages/room/_utils/event-bus/webrtc-events";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 export type Preferences = {
@@ -51,6 +51,13 @@ export function usePreferences() {
 
   const { token, name, isMuted, isCameraOff } = preferences;
 
+  const togglePreference = useCallback((key: keyof Preferences) => {
+    setPreferences((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  }, []);
+
   useEffect(() => {
     webrtcEvents.emit({
       type: "SYNC_META",
@@ -74,5 +81,9 @@ export function usePreferences() {
   return {
     preferences,
     setPreferences,
+    toggleMute: () => togglePreference("isMuted"),
+    toggleCamera: () => togglePreference("isCameraOff"),
+    toggleEcho: () => togglePreference("allowEcho"),
+    toggleLocalVideoMirror: () => togglePreference("isLocalVideoMirrored"),
   };
 }

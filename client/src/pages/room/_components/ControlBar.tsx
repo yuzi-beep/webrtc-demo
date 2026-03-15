@@ -71,7 +71,11 @@ export default function ControlBar({
         title={allowEcho ? "Disable echo" : "Enable echo"}
         id="toggle-echo-btn"
       >
-        {allowEcho ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+        {allowEcho ? (
+          <Volume2 className="w-5 h-5" />
+        ) : (
+          <VolumeX className="w-5 h-5" />
+        )}
       </button>
       <button
         className="h-[52px] rounded-full flex items-center justify-center text-sm transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 px-5 gap-1.5 font-medium"
@@ -79,7 +83,8 @@ export default function ControlBar({
         title="Copy meeting link"
         id="copy-link-btn"
       >
-        <Link2 className="w-4 h-4" /> <span className="text-[13px]">Copy Link</span>
+        <Link2 className="w-4 h-4" />{" "}
+        <span className="text-[13px]">Copy Link</span>
       </button>
       <button
         className="w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-danger border border-danger text-white hover:bg-danger-hover hover:scale-110"
