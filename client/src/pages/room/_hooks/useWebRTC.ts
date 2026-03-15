@@ -2,10 +2,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import SimplePeer from "simple-peer";
 import { webrtcEvents } from "../_utils/event-bus/webrtc-events";
 import { socketEvents } from "@/pages/room/_utils/event-bus/socket-events";
-import type {
-  MemberMeta,
-  WebRTCReceiveMessage,
-} from "@/pages/room/_types";
+import type { MemberMeta, WebRTCReceiveMessage } from "@/pages/room/_types";
 
 /**
  * Manages WebRTC peer connections using simple-peer.
@@ -138,9 +135,11 @@ export function useWebRTC() {
         upsertPeerMeta(remoteToken, { status: "connected" });
         // todo: sync meta
       });
-      peer.on("data", (data) =>
-        webrtcEvents.emit(JSON.parse(data.toString()) as WebRTCReceiveMessage),
-      );
+      peer.on("data", (data) => {
+        const message = JSON.parse(data.toString()) as WebRTCReceiveMessage;
+        message.senderToken = remoteToken;
+        webrtcEvents.emit(message);
+      });
       peer.on("stream", (remoteStream) => {
         streamsRef.current.set(remoteToken, remoteStream);
         upsertPeerMeta(remoteToken, { status: "connected" });
@@ -160,12 +159,22 @@ export function useWebRTC() {
   }, []);
 
   useEffect(() => {
-    const off = webrtcEvents.on("SEND", (message) => {
-      const payload = message.payload;
-      peersRef.current.forEach((peer) => peer.send(JSON.stringify(payload)));
-    });
-    return () => off();
-  }, []);
+    const unsubs = [
+      webrtcEvents.on("SEND", (message) => {
+        const payload = message.payload;
+        peersRef.current.forEach((peer) => peer.send(JSON.stringify(payload)));
+      }),
+      webrtcEvents.on("RECEIVE_SYNC_META", (message) => {
+        const meta = message.payload;
+        upsertPeerMeta(meta.token, {
+          name: meta.name,
+          isMuted: meta.isMuted,
+          isCameraOff: meta.isCameraOff,
+        });
+      }),
+    ];
+    return () => unsubs.forEach((off) => off());
+  }, [upsertPeerMeta]);
 
   return {
     peers,
