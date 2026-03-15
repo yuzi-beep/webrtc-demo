@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { webrtcEvents } from "../../../utils/event-bus/webrtc-events";
-import { getOrCreateToken } from "@/utils/token-identity";
+import { webrtcEvents } from "../_utils/event-bus/webrtc-events";
 
 interface ChatMessageItem {
   id: string;
@@ -10,10 +9,15 @@ interface ChatMessageItem {
   timestamp: number;
   isSelf: boolean;
 }
-export default function ChatPanel({ currentName }: { currentName: string }) {
+export default function ChatPanel({
+  currentName,
+  token,
+}: {
+  currentName: string;
+  token: string;
+}) {
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [token] = useState(() => getOrCreateToken());
 
   useEffect(() => {
     const handleMessage = (message: {

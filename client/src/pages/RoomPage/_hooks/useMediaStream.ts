@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import type { RoomPreferences } from "./useRoomPreferences";
+import type { Preferences } from "./usePreferences";
 
 /**
  * Manages local camera/microphone stream and mute/camera toggle controls.
@@ -8,7 +8,7 @@ import type { RoomPreferences } from "./useRoomPreferences";
 export function useMediaStream(
   isMuted: boolean,
   isCameraOff: boolean,
-  setPreferences: Dispatch<SetStateAction<RoomPreferences>>,
+  setPreferences: Dispatch<SetStateAction<Preferences>>,
   rebindStream: (stream: MediaStream) => void,
 ) {
   const streamRef = useRef<MediaStream>(new MediaStream());

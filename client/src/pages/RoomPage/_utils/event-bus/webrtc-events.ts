@@ -1,11 +1,10 @@
-import type { WebRTCEventMessage } from "@/types";
-
-export type Listener<T extends MessageType> = (
-  message: Extract<WebRTCEventMessage, { type: T }>,
-) => void;
+import type { WebRTCEventMessage } from "@/pages/RoomPage/_types";
 
 type MessageType = WebRTCEventMessage["type"];
 type AnyListener = (message: WebRTCEventMessage) => void;
+type Listener<T extends MessageType> = (
+  message: Extract<WebRTCEventMessage, { type: T }>,
+) => void;
 
 class WebRTCEventBus {
   private listeners: Partial<Record<MessageType, Set<AnyListener>>> = {};

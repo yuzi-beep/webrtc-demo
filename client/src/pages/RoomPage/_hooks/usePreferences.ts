@@ -1,8 +1,8 @@
-import { webrtcEvents } from "@/utils/event-bus/webrtc-events";
-import { getOrCreateToken } from "@/utils/token-identity";
+import { webrtcEvents } from "@/pages/RoomPage/_utils/event-bus/webrtc-events";
 import { useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
-export type RoomPreferences = {
+export type Preferences = {
   name: string;
   token: string;
   isLocalVideoMirrored: boolean;
@@ -11,17 +11,17 @@ export type RoomPreferences = {
   allowEcho: boolean;
 };
 
-const ROOM_PREFERENCES_STORAGE_KEY = "webrtc.roomPreferences";
-const DEFAULT_PREFERENCES: RoomPreferences = {
+const ROOM_PREFERENCES_STORAGE_KEY = "Preferences";
+const DEFAULT_PREFERENCES: Preferences = {
   isLocalVideoMirrored: true,
   isMuted: false,
   isCameraOff: false,
   allowEcho: false,
   name: `Guest-${Date.now().toString(36).slice(-4)}`,
-  token: getOrCreateToken(),
+  token: uuidv4(),
 };
 
-function getInitialPreferences(): RoomPreferences {
+function getInitialPreferences(): Preferences {
   const savedPreferences = window.localStorage.getItem(
     ROOM_PREFERENCES_STORAGE_KEY,
   );
@@ -29,7 +29,7 @@ function getInitialPreferences(): RoomPreferences {
   if (!savedPreferences) return DEFAULT_PREFERENCES;
 
   try {
-    const parsed = JSON.parse(savedPreferences) as Partial<RoomPreferences>;
+    const parsed = JSON.parse(savedPreferences) as Partial<Preferences>;
     return {
       isLocalVideoMirrored:
         parsed.isLocalVideoMirrored ?? DEFAULT_PREFERENCES.isLocalVideoMirrored,
@@ -45,7 +45,7 @@ function getInitialPreferences(): RoomPreferences {
 }
 
 export function usePreferences() {
-  const [preferences, setPreferences] = useState<RoomPreferences>(() =>
+  const [preferences, setPreferences] = useState<Preferences>(() =>
     getInitialPreferences(),
   );
 

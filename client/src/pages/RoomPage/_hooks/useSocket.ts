@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { io } from "socket.io-client";
-import { getOrCreateToken } from "@/utils/token-identity";
-import { socketEvents } from "@/utils/event-bus/socket-events";
-import type { SocketEventMessage } from "@/types";
+import { socketEvents } from "@/pages/RoomPage/_utils/event-bus/socket-events";
+import type { SocketEventMessage } from "@/pages/RoomPage/_types";
 
 const SIGNALING_SERVER = "http://localhost:3000";
 
@@ -11,10 +10,9 @@ const SIGNALING_SERVER = "http://localhost:3000";
  * Connects on mount, joins room, and exposes the socket instance
  * for other hooks to attach listeners to.
  */
-export function useSocket(roomId: string | undefined) {
+export function useSocket(roomId: string | undefined,token: string) {
   const [isConnected, setIsConnected] = useState(false);
   const [socketId, setSocketId] = useState<string | null>(null);
-  const [token] = useState(() => getOrCreateToken());
   const socket = useMemo(() => {
     if (!roomId) return null;
     return io(SIGNALING_SERVER, {

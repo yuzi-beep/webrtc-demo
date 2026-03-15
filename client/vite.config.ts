@@ -20,6 +20,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@room": path.resolve(__dirname, "./src/pages/RoomPage"),
     },
   },
 });

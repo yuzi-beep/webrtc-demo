@@ -1,15 +1,15 @@
 import { useParams } from "react-router-dom";
 import { Users } from "lucide-react";
-import { useMediaStream } from "./hooks/useMediaStream";
-import { useSocket } from "./hooks/useSocket";
-import { useWebRTC } from "./hooks/useWebRTC";
-import { usePreferences } from "./hooks/useRoomPreferences";
-import RemoteVideo from "./components/RemoteVideo";
-import LocaleVideo from "./components/LocaleVideo";
-import ChatPanel from "./components/ChatPanel";
-import UserMetaEditor from "./components/UserMetaEditor";
-import ControlBar from "./components/ControlBar";
-import { useRoomController } from "./hooks/useRoomController";
+import { useMediaStream } from "./_hooks/useMediaStream";
+import { useSocket } from "./_hooks/useSocket";
+import { useWebRTC } from "./_hooks/useWebRTC";
+import { usePreferences } from "./_hooks/usePreferences";
+import RemoteVideo from "./_components/RemoteVideo";
+import LocaleVideo from "./_components/LocaleVideo";
+import ChatPanel from "./_components/ChatPanel";
+import UserMetaEditor from "./_components/UserMetaEditor";
+import ControlBar from "./_components/ControlBar";
+import { useRoomController } from "./_hooks/useRoomController";
 import { useEffect } from "react";
 const gridClasses: Record<number, string> = {
   1: "grid-cols-1 grid-rows-1",
@@ -29,10 +29,11 @@ export default function RoomPage() {
       name,
       isLocalVideoMirrored,
       allowEcho,
+      token,
     },
     setPreferences,
   } = usePreferences();
-  const { socket, isConnected } = useSocket(roomId);
+  const { socket, isConnected } = useSocket(roomId, token);
   const { peers, getPeerStream, createPeer, destroyPeer, rebindStream } =
     useWebRTC();
   const { streamRef, toggleMute, toggleCamera } = useMediaStream(
@@ -117,7 +118,7 @@ export default function RoomPage() {
           })}
         </div>
 
-        <ChatPanel currentName={name} />
+        <ChatPanel currentName={name} token={token} />
       </div>
 
       <ControlBar

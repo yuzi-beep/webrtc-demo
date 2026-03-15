@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect } from "react";
-import type { RoomControllerParms, SignalEventPayload } from "@/types";
+import type { RoomControllerParms, SignalEventPayload } from "@/pages/RoomPage/_types";
 
 export const useRoomController = ({
   roomId,

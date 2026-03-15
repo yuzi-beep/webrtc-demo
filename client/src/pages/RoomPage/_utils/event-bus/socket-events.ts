@@ -1,9 +1,8 @@
-import type { SocketEventMessage } from "@/types";
+import type { SocketEventMessage } from "@/pages/RoomPage/_types";
 
 type MessageType = SocketEventMessage["type"];
 type AnyListener = (message: SocketEventMessage) => void;
-
-export type Listener<T extends MessageType> = (
+type Listener<T extends MessageType> = (
   message: Extract<SocketEventMessage, { type: T }>,
 ) => void;
 

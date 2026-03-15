@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { MicOff, VideoOff, Volume2, VolumeX } from "lucide-react";
-import { type MerberMeta } from "@/types";
+import { type MerberMeta } from "@/pages/RoomPage/_types";
 
 export default function RemoteVideo({
   stream,
