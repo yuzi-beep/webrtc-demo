@@ -137,8 +137,7 @@ export function useWebRTC() {
       });
       peer.on("data", (data) => {
         const message = JSON.parse(data.toString()) as WebRTCReceiveMessage;
-        message.senderToken = remoteToken;
-        webrtcEvents.emit(message);
+        webrtcEvents.emit(message, remoteToken);
       });
       peer.on("stream", (remoteStream) => {
         streamsRef.current.set(remoteToken, remoteStream);
@@ -160,16 +159,15 @@ export function useWebRTC() {
 
   useEffect(() => {
     const unsubs = [
-      webrtcEvents.on("SEND", (message) => {
-        const payload = message.payload;
+      webrtcEvents.on("SEND", (payload) => {
         peersRef.current.forEach((peer) => peer.send(JSON.stringify(payload)));
       }),
-      webrtcEvents.on("RECEIVE_SYNC_META", (message) => {
-        const meta = message.payload;
-        upsertPeerMeta(meta.token, {
-          name: meta.name,
-          isMuted: meta.isMuted,
-          isCameraOff: meta.isCameraOff,
+      webrtcEvents.on("RECEIVE_SYNC_META", (payload) => {
+        upsertPeerMeta(payload.token, {
+          token: payload.token,
+          name: payload.name,
+          isMuted: payload.isMuted,
+          isCameraOff: payload.isCameraOff,
         });
       }),
     ];

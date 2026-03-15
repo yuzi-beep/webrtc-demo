@@ -4,9 +4,15 @@ import type {
 } from "@/pages/room/_types";
 
 type MessageType = WebRTCEventMessage["type"];
-type AnyListener = (message: WebRTCEventMessage) => void;
+type EventByType<T extends MessageType> = Extract<
+  WebRTCEventMessage,
+  { type: T }
+>;
+type EventPayload<T extends MessageType> = EventByType<T>["payload"];
+type AnyListener = (payload: unknown, senderToken?: string) => void;
 type Listener<T extends MessageType> = (
-  message: Extract<WebRTCEventMessage, { type: T }>,
+  payload: EventPayload<T>,
+  senderToken?: string,
 ) => void;
 
 class WebRTCEventBus {
@@ -29,11 +35,12 @@ class WebRTCEventBus {
     this.emit({ type: "SEND", payload: message });
   }
 
-  emit(message: WebRTCEventMessage) {
+  emit(message: WebRTCEventMessage, senderToken?: string) {
     const typeListeners = this.listeners[message.type];
     if (typeListeners) {
+      const payload = message.payload;
       typeListeners.forEach((callback) => {
-        (callback as AnyListener)(message);
+        (callback as AnyListener)(payload, senderToken);
       });
     }
   }

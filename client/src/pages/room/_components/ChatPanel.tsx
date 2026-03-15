@@ -21,21 +21,23 @@ export default function ChatPanel({
   const [inputValue, setInputValue] = useState("");
 
   useEffect(() => {
-    const off = webrtcEvents.on("RECEIVE_CHAT_MESSAGE", (message) => {
-      const { payload } = message;
-      const senderId = "todo";
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `${senderId}-${payload.timestamp}`,
-          senderId,
-          senderName: payload.senderName,
-          text: payload.text,
-          timestamp: payload.timestamp,
-          isSelf: senderId === token,
-        },
-      ]);
-    });
+    const off = webrtcEvents.on(
+      "RECEIVE_CHAT_MESSAGE",
+      (payload, senderToken) => {
+        const senderId = senderToken ?? "unknown";
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `${senderId}-${payload.timestamp}`,
+            senderId,
+            senderName: payload.senderName,
+            text: payload.text,
+            timestamp: payload.timestamp,
+            isSelf: senderId === token,
+          },
+        ]);
+      },
+    );
     return () => off();
   }, [token]);
 
@@ -45,14 +47,14 @@ export default function ChatPanel({
 
     const timestamp = Date.now();
 
-    const message:WebRTCReceiveMessage ={
+    const message: WebRTCReceiveMessage = {
       type: "RECEIVE_CHAT_MESSAGE",
       payload: {
         text,
         senderName: currentName,
         timestamp,
       },
-    }
+    };
     webrtcEvents.send(message);
     webrtcEvents.emit(message);
 
