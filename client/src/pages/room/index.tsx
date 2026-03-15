@@ -10,7 +10,6 @@ import ChatPanel from "@/pages/room/_components/ChatPanel";
 import UserMetaEditor from "@/pages/room/_components/UserMetaEditor";
 import ControlBar from "@/pages/room/_components/ControlBar";
 import { useRoomController } from "@/pages/room/_hooks/useRoomController";
-import { useEffect } from "react";
 const gridClasses: Record<number, string> = {
   1: "grid-cols-1 grid-rows-1",
   2: "grid-cols-2 grid-rows-1",
@@ -57,14 +56,6 @@ export default function RoomPage() {
   const totalParticipants = 1 + peers.length;
   const displayRoomId = roomId ? roomId.slice(0, 8) + "..." : "";
 
-  useEffect(() => {
-    setPreferences((prev) => ({
-      ...prev,
-      name,
-      isMuted,
-      isCameraOff,
-    }));
-  }, [isMuted, isCameraOff, name, setPreferences]);
 
   // ── Main UI ──
   return (
