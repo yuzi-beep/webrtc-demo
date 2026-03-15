@@ -4,10 +4,19 @@ import type {
 } from "@/pages/room/_types";
 
 type MessageType = SocketEventMessage["type"];
-type AnyListener = (message: SocketEventMessage) => void;
-type Listener<T extends MessageType> = (
-  message: Extract<SocketEventMessage, { type: T }>,
-) => void;
+type EventByType<T extends MessageType> = Extract<
+  SocketEventMessage,
+  { type: T }
+>;
+type EventData<T extends MessageType> =
+  EventByType<T> extends { payload: infer P }
+    ? P
+    : EventByType<T> extends { message: infer M }
+      ? M
+      : void;
+type AnyListener = (data: unknown) => void;
+type Listener<T extends MessageType> =
+  EventData<T> extends void ? () => void : (data: EventData<T>) => void;
 
 class SocketEventBus {
   private listeners: Partial<Record<MessageType, Set<AnyListener>>> = {};
@@ -24,22 +33,22 @@ class SocketEventBus {
       return;
     }
     const typeListeners = this.listeners[type];
-    if (typeListeners) 
-      typeListeners.delete(callback as AnyListener);
+    if (typeListeners) typeListeners.delete(callback as AnyListener);
   }
 
   send(message: SocketSendMessage) {
     this.emit({
       type: "SEND_TO_SERVER",
-      message,
+      payload: message,
     });
   }
 
   emit(message: SocketEventMessage) {
     const typeListeners = this.listeners[message.type];
     if (typeListeners) {
+      const data = "payload" in message ? message.payload : undefined;
       typeListeners.forEach((callback) => {
-        (callback as AnyListener)(message);
+        (callback as AnyListener)(data);
       });
     }
   }

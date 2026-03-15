@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { socketEvents } from "../_utils/event-bus";
 import type SimplePeer from "simple-peer";
-import type { SocketEventMessage } from "@/pages/room/_types";
 
 export const useController = ({
   roomId,
@@ -30,15 +29,15 @@ export const useController = ({
       socketEvents.on("ROOM_FULL", leaveRoom),
       socketEvents.on(
         "RECEIVE_SIGNAL",
-        (message) => {
-          console.log("Received signal from server:", message);
-          createPeer(message.payload.senderToken, message.payload.signal);
+        (payload) => {
+          console.log("Received signal from server:", payload);
+          createPeer(payload.senderToken, payload.signal);
         },
       ),
       socketEvents.on(
         "EXISTING_TOKENS",
-        (message: Extract<SocketEventMessage, { type: "EXISTING_TOKENS" }>) => {
-          message.payload.forEach((token) => createPeer(token));
+        (payload) => {
+          payload.forEach((token) => createPeer(token));
         },
       ),
     ];

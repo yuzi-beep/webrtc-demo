@@ -33,7 +33,7 @@ export type SocketSendMessage =
 
 export type SocketInternalMessage = {
   type: "SEND_TO_SERVER";
-  message: SocketSendMessage;
+  payload: SocketSendMessage;
 };
 
 export type SocketEventMessage =

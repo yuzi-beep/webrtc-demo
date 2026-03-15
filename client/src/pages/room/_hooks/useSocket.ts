@@ -1,7 +1,11 @@
 import { useEffect, useMemo } from "react";
 import { io } from "socket.io-client";
 import { socketEvents } from "@/pages/room/_utils/event-bus/socket-events";
-import type { SocketEventMessage, SocketEventType } from "@/pages/room/_types";
+import type {
+  SocketEventMessage,
+  SocketEventType,
+  SocketSendMessage,
+} from "@/pages/room/_types";
 
 const SIGNALING_SERVER = "http://localhost:3000";
 
@@ -60,15 +64,15 @@ export function useSocket(roomId: string | undefined, token: string) {
 
   useEffect(() => {
     if (!socket) return;
-    const handleSendToServer = ({
-      message,
-    }: Extract<SocketEventMessage, { type: "SEND_TO_SERVER" }>) => {
-      socket.emit(message.type, message.payload);
-    };
 
-    socketEvents.on("SEND_TO_SERVER", handleSendToServer);
+    const off = socketEvents.on(
+      "SEND_TO_SERVER",
+      (message: SocketSendMessage) => {
+        socket.emit(message.type, message.payload);
+      },
+    );
 
-    return () => socketEvents.off("SEND_TO_SERVER", handleSendToServer);
+    return () => off();
   }, [socket]);
 
   return { socket };
