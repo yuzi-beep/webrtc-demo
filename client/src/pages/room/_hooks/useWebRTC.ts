@@ -2,18 +2,18 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import SimplePeer from "simple-peer";
 import { webrtcEvents } from "../_utils/event-bus/webrtc-events";
 import { socketEvents } from "@/pages/room/_utils/event-bus/socket-events";
-import type { MerberMeta, WebRTCEventMessage } from "@/pages/room/_types";
+import type { MemberMeta, WebRTCEventMessage } from "@/pages/room/_types";
 
 /**
  * Manages WebRTC peer connections using simple-peer.
  * Exposes RTC handlers; signaling transport is handled through socket event bus.
  */
 export function useWebRTC() {
-  const [peers, setPeers] = useState<MerberMeta[]>([]);
+  const [peers, setPeers] = useState<MemberMeta[]>([]);
   const localStreamRef = useRef<MediaStream>(null);
   const peersRef = useRef<Map<string, SimplePeer.Instance>>(new Map());
   const streamsRef = useRef<Map<string, MediaStream>>(new Map());
-  const peerMetaRef = useRef<Map<string, MerberMeta>>(new Map());
+  const peerMetaRef = useRef<Map<string, MemberMeta>>(new Map());
   const peerBoundTracksRef = useRef<
     Map<string, { audio?: MediaStreamTrack; video?: MediaStreamTrack }>
   >(new Map());
@@ -23,9 +23,9 @@ export function useWebRTC() {
   }, []);
 
   const upsertPeerMeta = useCallback(
-    (token: string, patch: Partial<MerberMeta>) => {
+    (token: string, patch: Partial<MemberMeta>) => {
       const currentMeta = peerMetaRef.current.get(token);
-      const nextMeta: MerberMeta = {
+      const nextMeta: MemberMeta = {
         token,
         name: currentMeta?.name ?? token.slice(0, 6),
         isMuted: currentMeta?.isMuted ?? false,

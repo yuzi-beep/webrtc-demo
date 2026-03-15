@@ -1,13 +1,13 @@
 import { useRef, useEffect, useState } from "react";
 import { MicOff, VideoOff, Volume2, VolumeX } from "lucide-react";
-import { type MerberMeta } from "@/pages/room/_types";
+import { type MemberMeta } from "@/pages/room/_types";
 
 export default function RemoteVideo({
   stream,
   meta,
 }: {
   stream: MediaStream | null;
-  meta: MerberMeta;
+  meta: MemberMeta;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(false);
