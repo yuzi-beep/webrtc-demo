@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { webrtcEvents } from "../_utils/event-bus/webrtc-events";
+import type { WebRTCReceiveMessage } from "../_types";
 
 interface ChatMessageItem {
   id: string;
@@ -20,12 +21,9 @@ export default function ChatPanel({
   const [inputValue, setInputValue] = useState("");
 
   useEffect(() => {
-    const handleMessage = (message: {
-      type: "CHAT_MESSAGE";
-      senderId: string;
-      payload: { text: string; senderName: string; timestamp: number };
-    }) => {
-      const { payload, senderId } = message;
+    const off = webrtcEvents.on("RECEIVE_CHAT_MESSAGE", (message) => {
+      const { payload } = message;
+      const senderId = "todo";
       setMessages((prev) => [
         ...prev,
         {
@@ -37,9 +35,7 @@ export default function ChatPanel({
           isSelf: senderId === token,
         },
       ]);
-    };
-
-    const off = webrtcEvents.on("CHAT_MESSAGE", handleMessage);
+    });
     return () => off();
   }, [token]);
 
@@ -48,15 +44,17 @@ export default function ChatPanel({
     if (text === "") return;
 
     const timestamp = Date.now();
-    webrtcEvents.emit({
-      type: "CHAT_SEND",
-      senderId: token,
+
+    const message:WebRTCReceiveMessage ={
+      type: "RECEIVE_CHAT_MESSAGE",
       payload: {
         text,
         senderName: currentName,
         timestamp,
       },
-    });
+    }
+    webrtcEvents.send(message);
+    webrtcEvents.emit(message);
 
     setInputValue("");
   };

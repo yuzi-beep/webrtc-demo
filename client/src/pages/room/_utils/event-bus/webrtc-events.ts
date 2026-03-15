@@ -1,4 +1,7 @@
-import type { WebRTCEventMessage } from "@/pages/room/_types";
+import type {
+  WebRTCEventMessage,
+  WebRTCReceiveMessage,
+} from "@/pages/room/_types";
 
 type MessageType = WebRTCEventMessage["type"];
 type AnyListener = (message: WebRTCEventMessage) => void;
@@ -22,6 +25,10 @@ class WebRTCEventBus {
     }
   }
 
+  send(message: WebRTCReceiveMessage) {
+    this.emit({ type: "SEND", payload: message });
+  }
+
   emit(message: WebRTCEventMessage) {
     const typeListeners = this.listeners[message.type];
     if (typeListeners) {
@@ -29,6 +36,10 @@ class WebRTCEventBus {
         (callback as AnyListener)(message);
       });
     }
+  }
+
+  offAny() {
+    this.listeners = {};
   }
 }
 

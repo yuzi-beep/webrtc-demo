@@ -2,7 +2,10 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import SimplePeer from "simple-peer";
 import { webrtcEvents } from "../_utils/event-bus/webrtc-events";
 import { socketEvents } from "@/pages/room/_utils/event-bus/socket-events";
-import type { MemberMeta, WebRTCEventMessage } from "@/pages/room/_types";
+import type {
+  MemberMeta,
+  WebRTCReceiveMessage,
+} from "@/pages/room/_types";
 
 /**
  * Manages WebRTC peer connections using simple-peer.
@@ -133,26 +136,11 @@ export function useWebRTC() {
       });
       peer.on("connect", () => {
         upsertPeerMeta(remoteToken, { status: "connected" });
-        webrtcEvents.emit({ type: "SYNC_META_REQUEST" });
+        // todo: sync meta
       });
-      peer.on("data", (data) => {
-        try {
-          const message = JSON.parse(data.toString()) as WebRTCEventMessage;
-          if (message.type === "SYNC_META") {
-            const { token, name, isMuted, isCameraOff } = message.payload;
-            upsertPeerMeta(token, {
-              name,
-              isMuted,
-              isCameraOff,
-              status: "connected",
-            });
-            return;
-          }
-          webrtcEvents.emit(message);
-        } catch {
-          console.warn("Received invalid data from peer:", data);
-        }
-      });
+      peer.on("data", (data) =>
+        webrtcEvents.emit(JSON.parse(data.toString()) as WebRTCReceiveMessage),
+      );
       peer.on("stream", (remoteStream) => {
         streamsRef.current.set(remoteToken, remoteStream);
         upsertPeerMeta(remoteToken, { status: "connected" });
@@ -172,26 +160,11 @@ export function useWebRTC() {
   }, []);
 
   useEffect(() => {
-    const unsubs = [
-      webrtcEvents.on("CHAT_SEND", (message) => {
-        const newMessage = { ...message, type: "CHAT_MESSAGE" };
-        const serialized = JSON.stringify(newMessage);
-        peersRef.current.forEach((peer) => peer.send(serialized));
-        webrtcEvents.emit(newMessage as WebRTCEventMessage);
-      }),
-      webrtcEvents.on("SYNC_META", (message) => {
-        const serialized = JSON.stringify(message);
-        peersRef.current.forEach((peer) => {
-          try {
-            peer.send(serialized);
-          } catch {
-            // Ignore if data channel is not ready
-          }
-        });
-      }),
-    ];
-
-    return () => unsubs.forEach((off) => off());
+    const off = webrtcEvents.on("SEND", (message) => {
+      const payload = message.payload;
+      peersRef.current.forEach((peer) => peer.send(JSON.stringify(payload)));
+    });
+    return () => off();
   }, []);
 
   return {

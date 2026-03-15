@@ -1,18 +1,14 @@
-
-export type WebRTCTransportMessage =
+export type WebRTCReceiveMessage =
   | {
       type: "MEDIA_STATE";
-      senderId: string;
       payload: { isMuted: boolean; isCameraOff: boolean };
     }
   | {
-      type: "CHAT_MESSAGE";
-      senderId: string;
+      type: "RECEIVE_CHAT_MESSAGE";
       payload: { text: string; senderName: string; timestamp: number };
     }
   | {
-      type: "SYNC_META";
-      senderId: string;
+      type: "RECEIVE_SYNC_META";
       payload: {
         token: string;
         name: string;
@@ -21,16 +17,9 @@ export type WebRTCTransportMessage =
       };
     };
 
-export type WebRTCInternalMessage =
-  | {
-      type: "CHAT_SEND";
-      senderId: string;
-      payload: { text: string; senderName: string; timestamp: number };
-    }
-  | {
-      type: "SYNC_META_REQUEST";
-    };
+export type WebRTCInternalMessage = {
+  type: "SEND";
+  payload: WebRTCReceiveMessage;
+};
 
-export type WebRTCEventMessage = WebRTCTransportMessage | WebRTCInternalMessage;
-
-export type WebRTCMessage = WebRTCTransportMessage;
+export type WebRTCEventMessage = WebRTCReceiveMessage | WebRTCInternalMessage;
