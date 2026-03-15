@@ -172,38 +172,26 @@ export function useWebRTC() {
   }, []);
 
   useEffect(() => {
-    const handleChatSend = (message: {
-      type: "CHAT_SEND";
-      senderId: string;
-      payload: { text: string; senderName: string; timestamp: number };
-    }) => {
-      const newMessage = { ...message, type: "CHAT_MESSAGE" };
-      const serialized = JSON.stringify(newMessage);
-      peersRef.current.forEach((peer) => peer.send(serialized));
-      webrtcEvents.emit(newMessage as WebRTCEventMessage);
-    };
+    const unsubs = [
+      webrtcEvents.on("CHAT_SEND", (message) => {
+        const newMessage = { ...message, type: "CHAT_MESSAGE" };
+        const serialized = JSON.stringify(newMessage);
+        peersRef.current.forEach((peer) => peer.send(serialized));
+        webrtcEvents.emit(newMessage as WebRTCEventMessage);
+      }),
+      webrtcEvents.on("SYNC_META", (message) => {
+        const serialized = JSON.stringify(message);
+        peersRef.current.forEach((peer) => {
+          try {
+            peer.send(serialized);
+          } catch {
+            // Ignore if data channel is not ready
+          }
+        });
+      }),
+    ];
 
-    webrtcEvents.on("CHAT_SEND", handleChatSend);
-
-    const handleSyncMeta = (
-      message: Extract<WebRTCEventMessage, { type: "SYNC_META" }>,
-    ) => {
-      const serialized = JSON.stringify(message);
-      peersRef.current.forEach((peer) => {
-        try {
-          peer.send(serialized);
-        } catch {
-          // Ignore if data channel is not ready
-        }
-      });
-    };
-
-    webrtcEvents.on("SYNC_META", handleSyncMeta);
-
-    return () => {
-      webrtcEvents.off("CHAT_SEND", handleChatSend);
-      webrtcEvents.off("SYNC_META", handleSyncMeta);
-    };
+    return () => unsubs.forEach((off) => off());
   }, []);
 
   return {

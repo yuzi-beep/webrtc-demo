@@ -12,6 +12,7 @@ class WebRTCEventBus {
   on<T extends MessageType>(type: T, callback: Listener<T>) {
     if (!this.listeners[type]) this.listeners[type] = new Set<AnyListener>();
     this.listeners[type].add(callback as AnyListener);
+    return () => this.off(type, callback);
   }
 
   off<T extends MessageType>(type: T, callback: Listener<T>) {

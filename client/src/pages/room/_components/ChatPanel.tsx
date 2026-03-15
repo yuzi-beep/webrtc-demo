@@ -39,11 +39,8 @@ export default function ChatPanel({
       ]);
     };
 
-    webrtcEvents.on("CHAT_MESSAGE", handleMessage);
-
-    return () => {
-      webrtcEvents.off("CHAT_MESSAGE", handleMessage);
-    };
+    const off = webrtcEvents.on("CHAT_MESSAGE", handleMessage);
+    return () => off();
   }, [token]);
 
   const onSend = () => {
