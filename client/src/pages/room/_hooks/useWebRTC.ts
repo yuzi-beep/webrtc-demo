@@ -123,8 +123,8 @@ export function useWebRTC() {
       if (signal) peer.signal(signal);
 
       peer.on("signal", (signal) => {
-        socketEvents.emit({
-          type: "SIGNAL_SEND",
+        socketEvents.send({
+          type: "SEND_SIGNAL",
           payload: {
             targetToken: remoteToken,
             signal,

@@ -1,4 +1,7 @@
-import type { SocketEventMessage } from "@/pages/room/_types";
+import type {
+  SocketEventMessage,
+  SocketSendMessage,
+} from "@/pages/room/_types";
 
 type MessageType = SocketEventMessage["type"];
 type AnyListener = (message: SocketEventMessage) => void;
@@ -19,6 +22,13 @@ class SocketEventBus {
     if (typeListeners) {
       typeListeners.delete(callback as AnyListener);
     }
+  }
+
+  send(message: SocketSendMessage) {
+    this.emit({
+      type: "SEND_TO_SERVER",
+      message,
+    });
   }
 
   emit(message: SocketEventMessage) {

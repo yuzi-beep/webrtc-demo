@@ -47,17 +47,14 @@ export function useSocket(roomId: string | undefined,token: string) {
 
   useEffect(() => {
     if (!socket) return;
+    const handleSendToServer = ({ message }: Extract<SocketEventMessage, { type: "SEND_TO_SERVER" }>) => {
+      socket.emit(message.type, message.payload);
+    }
 
-    const handleSignalSend = ({
-      payload: { targetToken, signal },
-    }: Extract<SocketEventMessage, { type: "SIGNAL_SEND" }>) => {
-      socket.emit("signal", { targetToken, signal });
-    };
-
-    socketEvents.on("SIGNAL_SEND", handleSignalSend);
+    socketEvents.on("SEND_TO_SERVER", handleSendToServer);
 
     return () => {
-      socketEvents.off("SIGNAL_SEND", handleSignalSend);
+      socketEvents.off("SEND_TO_SERVER", handleSendToServer);
     };
   }, [socket]);
 

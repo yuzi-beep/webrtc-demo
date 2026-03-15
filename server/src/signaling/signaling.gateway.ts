@@ -66,11 +66,12 @@ export class SignalingGateway
     this.tokenSocketMap.delete(token);
   }
 
-  @SubscribeMessage('join-room')
+  @SubscribeMessage('JOIN_ROOM')
   async handleJoinRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() roomId: string,
+    @MessageBody() data: { roomId: string },
   ) {
+    const { roomId } = data;
     const token =
       this.socketTokenMap.get(socket.id) ?? this.resolveToken(socket);
     this.logger.debug(
@@ -112,7 +113,7 @@ export class SignalingGateway
    * Generic signal relay — simple-peer sends all signal types
    * (offer, answer, ICE candidates) through this single event.
    */
-  @SubscribeMessage('signal')
+  @SubscribeMessage('SEND_SIGNAL')
   handleSignal(
     @ConnectedSocket() socket: Socket,
     @MessageBody() data: { targetToken: string; signal: string },

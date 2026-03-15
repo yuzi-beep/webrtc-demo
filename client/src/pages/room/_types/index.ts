@@ -1,5 +1,6 @@
 import type SimplePeer from "simple-peer";
 import type { Socket } from "socket.io-client";
+export * from "./socket-events";
 
 export type WebRTCTransportMessage =
   | {
@@ -37,11 +38,6 @@ export type WebRTCEventMessage = WebRTCTransportMessage | WebRTCInternalMessage;
 
 export type WebRTCMessage = WebRTCTransportMessage;
 
-export type SocketEventMessage = {
-  type: "SIGNAL_SEND";
-  payload: { targetToken: string; signal: SimplePeer.SignalData };
-};
-
 export interface MerberMeta {
   token: string;
   name: string;
@@ -61,3 +57,4 @@ export type SignalEventPayload = {
   senderToken: string;
   signal: SimplePeer.SignalData;
 };
+

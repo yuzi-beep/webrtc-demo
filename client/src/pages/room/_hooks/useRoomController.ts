@@ -1,6 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect } from "react";
-import type { RoomControllerParms, SignalEventPayload } from "@/pages/room/_types";
+import type {
+  RoomControllerParms,
+  SignalEventPayload,
+} from "@/pages/room/_types";
+import { socketEvents } from "../_utils/event-bus";
 
 export const useRoomController = ({
   roomId,
@@ -23,7 +27,9 @@ export const useRoomController = ({
     const handleTokenDisconnected = (data: string) => destroyPeer(data);
     const handleExistingTokens = (data: string[]) =>
       data.forEach((peerToken) => createPeer(peerToken));
-    const handleConnectJoin = () => socket.emit("join-room", roomId);
+    const handleConnectJoin = () => {
+      socketEvents.send({ type: "JOIN_ROOM", payload: { roomId } });
+    };
 
     socket.on("room-full", handleRoomFull);
     socket.on("signal", handleSignal);
