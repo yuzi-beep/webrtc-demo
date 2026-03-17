@@ -35,10 +35,6 @@ export type StoreState = Preferences & {
     toggleEcho: (value?: boolean) => void;
     toggleLocalVideoMirror: (value?: boolean) => void;
     getStream: (type: MediaType) => MediaStream;
-    getRemoteStream: (
-      token: string,
-      type: MediaType,
-    ) => MediaStream | undefined;
     clearMember: (token: string) => void;
   };
 
@@ -58,15 +54,9 @@ export const useStore = create<StoreState>()(
         isConnected: false,
         memberMetaMap: new Map(),
         streamsMap: new Map(),
-        memberStreamIdMap: new Map(),
         camera: new MediaStream(),
         microphone: new MediaStream(),
         getStream: (type) => get()[type],
-        getRemoteStream: (token, type) => {
-          const streamsMap = get().streamsMap;
-          const mediaStreams = streamsMap.get(token);
-          return mediaStreams ? mediaStreams[type] : undefined;
-        },
         setName: (nextName) => set({ name: nextName }),
         setRoomId: (value) => set({ roomId: value }),
         setToken: (nextToken) => set({ token: nextToken }),
