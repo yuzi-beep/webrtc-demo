@@ -2,14 +2,16 @@ import { useRef, useEffect, type RefObject } from "react";
 import { MicOff } from "lucide-react";
 
 export default function LocaleVideo({
-  streamRef,
+  micphoneMediaRef,
+  cameraMediaRef,
   isMuted,
   isCameraOff,
   isMirror,
   allowEcho,
   name,
 }: {
-  streamRef: RefObject<MediaStream>;
+  micphoneMediaRef: RefObject<MediaStream>;
+  cameraMediaRef: RefObject<MediaStream>;
   isMuted: boolean;
   isCameraOff: boolean;
   isMirror: boolean;
@@ -17,18 +19,35 @@ export default function LocaleVideo({
   name: string;
 }) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
+  const localAudioRef = useRef<HTMLAudioElement>(null);
+
   useEffect(() => {
-    const stream = streamRef.current;
+    const stream = cameraMediaRef.current;
     const videoEl = localVideoRef.current;
     if (!videoEl) return;
 
     if (isCameraOff) {
+      videoEl.srcObject = null;
       videoEl.load();
       return;
     }
 
     videoEl.srcObject = stream;
-  }, [streamRef, isCameraOff]);
+  }, [cameraMediaRef, isCameraOff]);
+
+  useEffect(() => {
+    const stream = micphoneMediaRef.current;
+    const audioEl = localAudioRef.current;
+    if (!audioEl) return;
+
+    if (isMuted) {
+      audioEl.srcObject = null;
+      audioEl.load();
+      return;
+    }
+
+    audioEl.srcObject = stream;
+  }, [micphoneMediaRef, isMuted]);
 
   return (
     <div
@@ -37,10 +56,11 @@ export default function LocaleVideo({
       <video
         ref={localVideoRef}
         autoPlay
-        muted={!allowEcho}
+        muted
         playsInline
         className={`w-full h-full object-cover block ${isMirror ? "mirror-x" : ""}`}
       />
+      <audio ref={localAudioRef} autoPlay muted={!allowEcho} playsInline />
       <span className="absolute bottom-3 left-3 text-xs font-medium text-white bg-black/60 backdrop-blur-lg py-1 px-3 rounded-full tracking-wide">
         {name} (You)
       </span>

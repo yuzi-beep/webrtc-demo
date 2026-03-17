@@ -30,6 +30,8 @@ export default function RoomPage() {
       allowEcho,
       token,
     },
+    micphoneMediaRef,
+    cameraMediaRef,
     setPreferences,
     toggleCamera,
     toggleMute,
@@ -38,12 +40,7 @@ export default function RoomPage() {
   } = usePreferences();
   useSocket(roomId, token);
   const { peers, getPeerStream, createPeer, rebindStream } = useWebRTC();
-  const { streamRef } = useMediaStream(
-    isMuted,
-    isCameraOff,
-    setPreferences,
-    rebindStream,
-  );
+  useMediaStream(isMuted, isCameraOff, setPreferences, rebindStream);
   const { leaveRoom, isConnected } = useController({
     roomId,
     createPeer,
@@ -95,7 +92,8 @@ export default function RoomPage() {
         >
           {/* Local Video */}
           <LocaleVideo
-            streamRef={streamRef}
+            micphoneMediaRef={micphoneMediaRef}
+            cameraMediaRef={cameraMediaRef}
             isMuted={isMuted}
             isCameraOff={isCameraOff}
             isMirror={isLocalVideoMirrored}

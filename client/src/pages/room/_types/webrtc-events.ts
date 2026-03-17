@@ -1,3 +1,4 @@
+export type StreamType = "MICROPHONE" | "CAMERA" | "SCREEN" | "SCREEN_AUDIO";
 export type WebRTCReceiveMessage =
   | {
       type: "MEDIA_STATE";
@@ -15,6 +16,14 @@ export type WebRTCReceiveMessage =
         isMuted: boolean;
         isCameraOff: boolean;
       };
+    }
+  | {
+      type: "STREAM_SYNC";
+      payload: {
+        streamId: string;
+        streamType: StreamType;
+        status: "enabled" | "disabled";
+      }[];
     };
 
 export type WebRTCInternalMessage = {

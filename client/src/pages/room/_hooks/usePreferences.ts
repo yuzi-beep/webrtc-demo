@@ -16,6 +16,10 @@ export function usePreferences() {
     (state) => state.isLocalVideoMirrored,
   );
   const allowEcho = useRoomPreferencesStore((state) => state.allowEcho);
+  const micphoneMediaRef = useRoomPreferencesStore(
+    (state) => state.micphoneMediaRef,
+  );
+  const cameraMediaRef = useRoomPreferencesStore((state) => state.cameraMediaRef);
   const setPreferences = useRoomPreferencesStore((state) => state.setPreferences);
   const toggleMute = useRoomPreferencesStore((state) => state.toggleMute);
   const toggleCamera = useRoomPreferencesStore((state) => state.toggleCamera);
@@ -50,6 +54,8 @@ export function usePreferences() {
 
   return {
     preferences,
+    micphoneMediaRef,
+    cameraMediaRef,
     setPreferences,
     toggleMute,
     toggleCamera,

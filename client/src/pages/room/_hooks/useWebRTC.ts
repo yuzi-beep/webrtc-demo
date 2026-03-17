@@ -18,6 +18,8 @@ export function useWebRTC() {
     Map<string, { audio?: MediaStreamTrack; video?: MediaStreamTrack }>
   >(new Map());
 
+
+
   const updateState = useCallback(() => {
     setPeers(Array.from(peerMetaRef.current.values()));
   }, []);

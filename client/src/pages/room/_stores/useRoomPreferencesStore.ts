@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+type MediaStreamRef = { current: MediaStream };
+
 export type Preferences = {
   name: string;
   token: string;
@@ -13,6 +15,8 @@ export type Preferences = {
 };
 
 type RoomPreferencesStore = Preferences & {
+  micphoneMediaRef: MediaStreamRef;
+  cameraMediaRef: MediaStreamRef;
   setPreferences: (updater: SetStateAction<Preferences>) => void;
   setName: (nextName: string) => void;
   setToken: (nextToken: string) => void;
@@ -37,6 +41,8 @@ export const useRoomPreferencesStore = create<RoomPreferencesStore>()(
   persist(
     (set) => ({
       ...createInitialPreferences(),
+      micphoneMediaRef: { current: new MediaStream() },
+      cameraMediaRef: { current: new MediaStream() },
 
       setPreferences: (updater) =>
         set((state) => {
