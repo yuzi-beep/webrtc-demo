@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useStore } from "../_stores/useStore";
 
 export default function UserMetaEditor({
   name,
@@ -8,11 +9,14 @@ export default function UserMetaEditor({
   onSave: (nextName: string) => void;
 }) {
   const [draftName, setDraftName] = useState(name);
+  const setState = useStore.setState
 
   const handleSave = () => {
     const trimmedName = draftName.trim();
     if (!trimmedName) return;
     onSave(trimmedName);
+    setState({ name: trimmedName });
+    
   };
 
   return (

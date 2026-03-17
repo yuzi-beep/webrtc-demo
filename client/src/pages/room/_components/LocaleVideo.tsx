@@ -1,28 +1,25 @@
-import { useRef, useEffect, type RefObject } from "react";
+import { useRef, useEffect } from "react";
 import { MicOff } from "lucide-react";
+import { useStore } from "../_stores/useStore";
+import { useShallow } from "zustand/react/shallow";
 
-export default function LocaleVideo({
-  micphoneMediaRef,
-  cameraMediaRef,
-  isMuted,
-  isCameraOff,
-  isMirror,
-  allowEcho,
-  name,
-}: {
-  micphoneMediaRef: RefObject<MediaStream>;
-  cameraMediaRef: RefObject<MediaStream>;
-  isMuted: boolean;
-  isCameraOff: boolean;
-  isMirror: boolean;
-  allowEcho: boolean;
-  name: string;
-}) {
+export default function LocaleVideo() {
+  const { name, isMuted, isCameraOff, isMirror, allowEcho } = useStore(
+    useShallow((state) => ({
+      name: state.name,
+      token: state.token,
+      isMuted: state.isMuted,
+      isCameraOff: state.isCameraOff,
+      isMirror: state.isLocalVideoMirrored,
+      allowEcho: state.allowEcho,
+    })),
+  );
+  const getStream = useStore.getState().getStream;
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const localAudioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
-    const stream = cameraMediaRef.current;
+    const stream = getStream("camera");
     const videoEl = localVideoRef.current;
     if (!videoEl) return;
 
@@ -33,10 +30,10 @@ export default function LocaleVideo({
     }
 
     videoEl.srcObject = stream;
-  }, [cameraMediaRef, isCameraOff]);
+  }, [getStream, isCameraOff]);
 
   useEffect(() => {
-    const stream = micphoneMediaRef.current;
+    const stream = getStream("microphone");
     const audioEl = localAudioRef.current;
     if (!audioEl) return;
 
@@ -47,7 +44,7 @@ export default function LocaleVideo({
     }
 
     audioEl.srcObject = stream;
-  }, [micphoneMediaRef, isMuted]);
+  }, [getStream, isMuted]);
 
   return (
     <div

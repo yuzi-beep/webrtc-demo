@@ -1,61 +1,102 @@
 import { useRef, useEffect, useState } from "react";
 import { MicOff, VideoOff, Volume2, VolumeX } from "lucide-react";
 import { type MemberMeta } from "@/pages/room/_types";
+import { useStore } from "../_stores/useStore";
 
 export default function RemoteVideo({
-  stream,
   meta,
+  token,
 }: {
-  stream: MediaStream | null;
   meta: MemberMeta;
+  token: string;
 }) {
-  const ref = useRef<HTMLVideoElement>(null);
-  const [muted, setMuted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaybackMuted, setIsPlaybackMuted] = useState(false);
+  const { name, isMuted, isCameraOff } = meta;
+
+  const remoteCameraStream = useStore(
+    (state) => state.streamsMap.get(token)?.camera,
+  );
+  const remoteMicrophoneStream = useStore(
+    (state) => state.streamsMap.get(token)?.microphone,
+  );
+
+  const bindMediaStream = (
+    element: HTMLVideoElement | HTMLAudioElement,
+    stream: MediaStream | null,
+  ) => {
+    if (element.srcObject !== stream) {
+      element.srcObject = stream;
+      element.load();
+    }
+    if (!stream) return;
+    element.play().catch(() => {});
+  };
 
   useEffect(() => {
-    const videoEl = ref.current;
+    const videoEl = videoRef.current;
     if (!videoEl) return;
 
-    if (meta.isCameraOff) {
-      videoEl.srcObject = null;
-      videoEl.load();
+    if (isCameraOff) {
+      bindMediaStream(videoEl, null);
       return;
     }
 
-    videoEl.srcObject = stream;
-  }, [stream, meta.isCameraOff]);
+    bindMediaStream(videoEl, remoteCameraStream ?? null);
+  }, [isCameraOff, remoteCameraStream]);
+
+  useEffect(() => {
+    const audioEl = audioRef.current;
+    if (!audioEl) return;
+
+    if (isMuted) {
+      bindMediaStream(audioEl, null);
+      return;
+    }
+
+    bindMediaStream(audioEl, remoteMicrophoneStream ?? null);
+  }, [isMuted, remoteMicrophoneStream]);
+
+  useEffect(() => {
+    const audioEl = audioRef.current;
+    if (!audioEl || isPlaybackMuted) return;
+    audioEl.play().catch(() => {});
+  }, [isPlaybackMuted, remoteMicrophoneStream]);
+
   return (
     <>
       <div
         className={`relative rounded-xl overflow-hidden bg-bg-secondary border border-border-glass`}
       >
         <video
-          ref={ref}
+          ref={videoRef}
           autoPlay
           playsInline
-          muted={muted}
+          muted
           className="w-full h-full object-cover block"
         />
+        <audio ref={audioRef} autoPlay playsInline muted={isPlaybackMuted} />
         <span className="absolute bottom-3 left-3 text-xs font-medium text-white bg-black/60 backdrop-blur-lg py-1 px-3 rounded-full tracking-wide">
-          {meta.name}
+          {name}
         </span>
         <div className="absolute top-3 left-3 flex items-center gap-1.5">
-          {meta.isMuted && (
+          {isMuted && (
             <span className="text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center text-white">
               <MicOff className="w-4 h-4" />
             </span>
           )}
-          {meta.isCameraOff && (
+          {isCameraOff && (
             <span className="text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center text-white">
               <VideoOff className="w-4 h-4" />
             </span>
           )}
         </div>
         <button
-          className={`absolute top-3 right-3 text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center ${muted ? "text-danger" : "text-white"}`}
-          onClick={() => setMuted((v) => !v)}
+          className={`absolute top-3 right-3 text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center ${isPlaybackMuted ? "text-danger" : "text-white"}`}
+          onClick={() => setIsPlaybackMuted((prev) => !prev)}
         >
-          {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+          {isPlaybackMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
         </button>
       </div>
     </>

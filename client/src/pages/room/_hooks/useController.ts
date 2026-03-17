@@ -1,51 +1,62 @@
 import { useNavigate } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
-import { socketEvents } from "../_utils/event-bus";
-import type SimplePeer from "simple-peer";
+import { useEffect } from "react";
+import { socketEvents, webrtcEvents } from "../_utils/event-bus";
+import { useStore } from "../_stores/useStore";
+import { useParams } from "react-router-dom";
+import { useShallow } from "zustand/react/shallow";
 
-export const useController = ({
-  roomId,
-  createPeer,
-}: {
-  roomId: string;
-  createPeer: (token: string, signal?: SimplePeer.SignalData) => void;
-}) => {
-  const [isConnected, setIsConnected] = useState(false);
+export const useController = () => {
+  const { roomId } = useParams<{ roomId: string }>();
+  const setState = useStore.setState;
   const navigate = useNavigate();
-  const leaveRoom = useCallback(() => {
-    navigate("/");
-  }, [navigate]);
+
+  const { name, token, isMuted, isCameraOff } = useStore(
+    useShallow((state) => ({
+      token: state.token,
+      name: state.name,
+      isMuted: state.isMuted,
+      isCameraOff: state.isCameraOff,
+    })),
+  );
+
+  useEffect(() => {
+    webrtcEvents.send({
+      type: "RECEIVE_SYNC_META",
+      payload: { name, token, isMuted, isCameraOff },
+    });
+  }, [name, token, isMuted, isCameraOff]);
+
+  useEffect(() => {
+    setState({ roomId });
+  }, [roomId, setState]);
 
   useEffect(() => {
     if (!roomId) return;
-
     const unsubs = [
       socketEvents.on("CONNECTED", () => {
-        console.log("Connected to signaling server, joining room:", roomId);
+        console.debug("Connected to signaling server, joining room:", roomId);
         socketEvents.send({ type: "JOIN_ROOM", payload: { roomId } });
-        setIsConnected(true);
+        setState({ isConnected: true });
       }),
-      socketEvents.on("DISCONNECTED", () => setIsConnected(false)),
-      socketEvents.on("ROOM_FULL", leaveRoom),
-      socketEvents.on(
-        "RECEIVE_SIGNAL",
-        (payload) => {
-          console.log("Received signal from server:", payload);
-          createPeer(payload.senderToken, payload.signal);
-        },
-      ),
-      socketEvents.on(
-        "EXISTING_TOKENS",
-        (payload) => {
-          payload.forEach((token) => createPeer(token));
+      socketEvents.on("DISCONNECTED", () => setState({ isConnected: false })),
+      socketEvents.on("ROOM_FULL", () => navigate("/")),
+      webrtcEvents.on(
+        "RECEIVE_SYNC_META",
+        ({ name, isMuted, isCameraOff }, token) => {
+          if (!token) return;
+          setState((state) => {
+            const memberMetaMap = state.memberMetaMap;
+            memberMetaMap.set(token, {
+              name,
+              isMuted,
+              isCameraOff,
+              status: "connected",
+            });
+            return { memberMetaMap: new Map(memberMetaMap) };
+          });
         },
       ),
     ];
     return () => unsubs.forEach((off) => off());
-  }, [createPeer, leaveRoom, roomId]);
-
-  return {
-    isConnected,
-    leaveRoom,
-  };
+  }, [navigate, roomId, setState]);
 };

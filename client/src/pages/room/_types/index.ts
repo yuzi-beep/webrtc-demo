@@ -3,8 +3,9 @@ import type { Socket } from "socket.io-client";
 export * from "./socket-events";
 export * from "./webrtc-events";
 
+export type MediaType = "camera" | "microphone";
+
 export interface MemberMeta {
-  token: string;
   name: string;
   isMuted: boolean;
   isCameraOff: boolean;

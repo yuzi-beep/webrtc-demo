@@ -1,4 +1,5 @@
-export type StreamType = "MICROPHONE" | "CAMERA" | "SCREEN" | "SCREEN_AUDIO";
+import type { MediaType } from ".";
+
 export type WebRTCReceiveMessage =
   | {
       type: "MEDIA_STATE";
@@ -19,16 +20,14 @@ export type WebRTCReceiveMessage =
     }
   | {
       type: "STREAM_SYNC";
-      payload: {
-        streamId: string;
-        streamType: StreamType;
-        status: "enabled" | "disabled";
-      }[];
+      payload: Record<MediaType, string>;
     };
 
-export type WebRTCInternalMessage = {
-  type: "SEND";
-  payload: WebRTCReceiveMessage;
-};
+export type WebRTCInternalMessage =
+  | {
+      type: "SEND";
+      payload: WebRTCReceiveMessage;
+    }
+  | { type: "REBIND_STREAM"; payload?: never };
 
 export type WebRTCEventMessage = WebRTCReceiveMessage | WebRTCInternalMessage;

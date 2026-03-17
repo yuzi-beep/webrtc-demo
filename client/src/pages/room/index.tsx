@@ -1,15 +1,15 @@
-import { useParams } from "react-router-dom";
 import { Users } from "lucide-react";
 import { useMediaStream } from "@/pages/room/_hooks/useMediaStream";
 import { useSocket } from "@/pages/room/_hooks/useSocket";
 import { useWebRTC } from "@/pages/room/_hooks/useWebRTC";
-import { usePreferences } from "@/pages/room/_hooks/usePreferences";
+import { useStore } from "./_stores/useStore";
 import RemoteVideo from "@/pages/room/_components/RemoteVideo";
 import LocaleVideo from "@/pages/room/_components/LocaleVideo";
 import ChatPanel from "@/pages/room/_components/ChatPanel";
 import UserMetaEditor from "@/pages/room/_components/UserMetaEditor";
 import ControlBar from "@/pages/room/_components/ControlBar";
 import { useController } from "@/pages/room/_hooks/useController";
+import { useShallow } from "zustand/react/shallow";
 const gridClasses: Record<number, string> = {
   1: "grid-cols-1 grid-rows-1",
   2: "grid-cols-2 grid-rows-1",
@@ -18,46 +18,29 @@ const gridClasses: Record<number, string> = {
 };
 
 export default function RoomPage() {
-  const { roomId } = useParams<{ roomId: string }>() as { roomId: string };
+  const { name, token, roomId, isConnected, memberMetaMap } = useStore(
+    useShallow((state) => ({
+      name: state.name,
+      token: state.token,
+      roomId: state.roomId,
+      isConnected: state.isConnected,
+      memberMetaMap: state.memberMetaMap,
+    })),
+  );
 
-  // ── Hooks (all logic lives here) ──
-  const {
-    preferences: {
-      isMuted,
-      isCameraOff,
-      name,
-      isLocalVideoMirrored,
-      allowEcho,
-      token,
-    },
-    micphoneMediaRef,
-    cameraMediaRef,
-    setPreferences,
-    toggleCamera,
-    toggleMute,
-    toggleEcho,
-    toggleLocalVideoMirror,
-  } = usePreferences();
-  useSocket(roomId, token);
-  const { peers, getPeerStream, createPeer, rebindStream } = useWebRTC();
-  useMediaStream(isMuted, isCameraOff, setPreferences, rebindStream);
-  const { leaveRoom, isConnected } = useController({
-    roomId,
-    createPeer,
-  });
+  useWebRTC();
+  useSocket();
+  useMediaStream();
+  useController();
 
-  // ── Handlers ──
-  const copyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-  };
-
-  const totalParticipants = 1 + peers.length;
-  const displayRoomId = roomId ? roomId.slice(0, 8) + "..." : "";
+  // // ── Handlers ──
+  const totalParticipants = 1 + Array.from(memberMetaMap.values()).length;
+  const displayRoomId = roomId ?? "-";
 
   // ── Main UI ──
   return (
     <div className="w-full h-full bg-bg-primary flex flex-col">
-      {/* Connecting Overlay */}
+      Connecting Overlay
       {!isConnected && (
         <div className="fixed inset-0 z-50 bg-bg-primary flex flex-col items-center justify-center gap-4">
           <div className="w-10 h-10 border-3 border-border-glass border-t-accent rounded-full animate-spin-custom" />
@@ -66,23 +49,18 @@ export default function RoomPage() {
           </p>
         </div>
       )}
-
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-3 border-b border-border-glass bg-bg-secondary/60 backdrop-blur-[10px]">
         <span className="text-[13px] text-text-secondary font-mono bg-bg-glass py-1.5 px-3.5 rounded-full border border-border-glass">
           Room: {displayRoomId}
         </span>
         <div className="flex items-center gap-3">
-          <UserMetaEditor
-            name={name}
-            onSave={(name) => setPreferences((prev) => ({ ...prev, name }))}
-          />
+          <UserMetaEditor name={name} onSave={() => {}} />
           <span className="text-[13px] text-text-secondary flex items-center gap-1.5">
             <Users className="w-4 h-4" /> {totalParticipants} / 4
           </span>
         </div>
       </div>
-
       {/* Main Content */}
       <div className="flex-1 min-h-0 flex">
         {/* Video Grid */}
@@ -91,37 +69,17 @@ export default function RoomPage() {
           style={{ gridAutoRows: "1fr" }}
         >
           {/* Local Video */}
-          <LocaleVideo
-            micphoneMediaRef={micphoneMediaRef}
-            cameraMediaRef={cameraMediaRef}
-            isMuted={isMuted}
-            isCameraOff={isCameraOff}
-            isMirror={isLocalVideoMirrored}
-            allowEcho={allowEcho}
-            name={name}
-          />
+          <LocaleVideo />
 
-          {peers.map((meta) => {
-            const stream = getPeerStream(meta.token);
-            return <RemoteVideo key={meta.token} stream={stream} meta={meta} />;
+          {Array.from(memberMetaMap.keys()).map((token) => {
+            const meta = memberMetaMap.get(token)!;
+            return <RemoteVideo key={token} token={token} meta={meta} />;
           })}
         </div>
 
         <ChatPanel currentName={name} token={token} />
       </div>
-
-      <ControlBar
-        isMuted={isMuted}
-        isCameraOff={isCameraOff}
-        isLocalVideoMirrored={isLocalVideoMirrored}
-        allowEcho={allowEcho}
-        onToggleMute={toggleMute}
-        onToggleCamera={toggleCamera}
-        onToggleMirror={toggleLocalVideoMirror}
-        onToggleEcho={toggleEcho}
-        onCopyLink={copyLink}
-        onLeaveRoom={leaveRoom}
-      />
+      <ControlBar />
     </div>
   );
 }

@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const [roomInput, setRoomInput] = useState('');
+  const [roomInput, setRoomInput] = useState("");
 
   const createRoom = () => {
     const roomId = crypto.randomUUID();
@@ -20,12 +20,17 @@ export default function HomePage() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') joinRoom();
+    if (e.key === "Enter") joinRoom();
   };
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-bg-primary relative overflow-hidden"
-         style={{ backgroundImage: 'radial-gradient(ellipse at top left, rgba(108,92,231,0.15) 0%, transparent 50%), radial-gradient(ellipse at bottom right, rgba(168,85,247,0.1) 0%, transparent 50%)' }}>
+    <div
+      className="w-full h-full flex items-center justify-center bg-bg-primary relative overflow-hidden"
+      style={{
+        backgroundImage:
+          "radial-gradient(ellipse at top left, rgba(108,92,231,0.15) 0%, transparent 50%), radial-gradient(ellipse at bottom right, rgba(168,85,247,0.1) 0%, transparent 50%)",
+      }}
+    >
       {/* Animated background orbs */}
       <div className="absolute w-[400px] h-[400px] rounded-full bg-accent/15 -top-[100px] -left-[100px] blur-[80px] animate-float" />
       <div className="absolute w-[350px] h-[350px] rounded-full bg-purple-500/12 -bottom-[80px] -right-[80px] blur-[80px] animate-float-delayed" />
@@ -58,7 +63,9 @@ export default function HomePage() {
 
         {/* Join Section */}
         <div className="mt-6 pt-6 border-t border-border-glass">
-          <p className="text-[13px] text-text-muted mb-3">Or join an existing meeting</p>
+          <p className="text-[13px] text-text-muted mb-3">
+            Or join an existing meeting
+          </p>
           <div className="flex gap-2">
             <input
               className="flex-1 py-3 px-4 text-sm font-sans text-text-primary bg-bg-secondary border border-border-glass rounded-lg outline-none transition-all duration-300 placeholder:text-text-muted focus:border-accent focus:shadow-[0_0_0_3px_rgba(108,92,231,0.15)]"
