@@ -8,9 +8,11 @@ import { useStore } from "../_stores/useStore";
 export function useMediaStream() {
   const isMuted = useStore((state) => state.isMuted);
   const isCameraOff = useStore((state) => state.isCameraOff);
+  const isScreenSharing = useStore((state) => state.isScreenSharing);
   const getStream = useStore.getState().getStream;
   const toggleMute = useStore((state) => state.toggleMute);
   const toggleCamera = useStore((state) => state.toggleCamera);
+  const toggleScreenShare = useStore((state) => state.toggleScreenShare);
 
   useEffect(() => {
     webrtcEvents.send({
@@ -88,4 +90,51 @@ export function useMediaStream() {
       });
     };
   }, [isCameraOff, getStream, toggleCamera]);
+
+  useEffect(() => {
+    let isEffectActive = true;
+    const stream = getStream("screen");
+
+    const removeAllTracks = () => {
+      stream.getTracks().forEach((track) => {
+        stream.removeTrack(track);
+        track.stop();
+      });
+    };
+
+    (async () => {
+      if (!isScreenSharing) {
+        removeAllTracks();
+        webrtcEvents.emit({ type: "REBIND_STREAM" });
+        return;
+      }
+
+      try {
+        const screenOnlyStream = await navigator.mediaDevices.getDisplayMedia({
+          audio: false,
+          video: true,
+        });
+        if (!isEffectActive) {
+          screenOnlyStream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+
+        screenOnlyStream.getVideoTracks().forEach((track) => {
+          track.addEventListener("ended", () => toggleScreenShare(false), {
+            once: true,
+          });
+          stream.addTrack(track);
+        });
+      } catch {
+        toggleScreenShare(false);
+      } finally {
+        webrtcEvents.emit({ type: "REBIND_STREAM" });
+      }
+    })();
+
+    return () => {
+      isEffectActive = false;
+      removeAllTracks();
+    };
+  }, [isScreenSharing, getStream, toggleScreenShare]);
 }

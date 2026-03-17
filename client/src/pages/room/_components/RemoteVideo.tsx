@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { MicOff, VideoOff, Volume2, VolumeX } from "lucide-react";
+import { MicOff, Monitor, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
 import { type MemberMeta } from "@/pages/room/_types";
 import { useStore } from "../_stores/useStore";
 
@@ -13,6 +13,9 @@ export default function RemoteVideo({
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaybackMuted, setIsPlaybackMuted] = useState(false);
+  const [displayMediaType, setDisplayMediaType] = useState<"camera" | "screen">(
+    "camera",
+  );
   const { name, isMuted, isCameraOff } = meta;
 
   const remoteCameraStream = useStore(
@@ -20,6 +23,9 @@ export default function RemoteVideo({
   );
   const remoteMicrophoneStream = useStore(
     (state) => state.streamsMap.get(token)?.microphone,
+  );
+  const remoteScreenStream = useStore(
+    (state) => state.streamsMap.get(token)?.screen,
   );
 
   const bindMediaStream = (
@@ -38,13 +44,17 @@ export default function RemoteVideo({
     const videoEl = videoRef.current;
     if (!videoEl) return;
 
-    if (isCameraOff) {
+    if (displayMediaType === "camera" && isCameraOff) {
       bindMediaStream(videoEl, null);
       return;
     }
 
-    bindMediaStream(videoEl, remoteCameraStream ?? null);
-  }, [isCameraOff, remoteCameraStream]);
+    bindMediaStream(
+      videoEl,
+      (displayMediaType === "camera" ? remoteCameraStream : remoteScreenStream) ??
+        null,
+    );
+  }, [displayMediaType, isCameraOff, remoteCameraStream, remoteScreenStream]);
 
   useEffect(() => {
     const audioEl = audioRef.current;
@@ -92,12 +102,28 @@ export default function RemoteVideo({
             </span>
           )}
         </div>
-        <button
-          className={`absolute top-3 right-3 text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center ${isPlaybackMuted ? "text-danger" : "text-white"}`}
-          onClick={() => setIsPlaybackMuted((prev) => !prev)}
-        >
-          {isPlaybackMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-        </button>
+        <div className="absolute top-3 right-3 flex items-center gap-1.5">
+          <button
+            className="text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center text-white"
+            onClick={() =>
+              setDisplayMediaType((prev) =>
+                prev === "camera" ? "screen" : "camera",
+              )
+            }
+          >
+            {displayMediaType === "camera" ? (
+              <Monitor size={16} />
+            ) : (
+              <Video size={16} />
+            )}
+          </button>
+          <button
+            className={`text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center ${isPlaybackMuted ? "text-danger" : "text-white"}`}
+            onClick={() => setIsPlaybackMuted((prev) => !prev)}
+          >
+            {isPlaybackMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+          </button>
+        </div>
       </div>
     </>
   );

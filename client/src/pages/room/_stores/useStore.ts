@@ -16,6 +16,7 @@ export type Preferences = {
 export type StoreState = Preferences & {
   roomId?: string;
   isConnected: boolean;
+  isScreenSharing: boolean;
   memberMetaMap: Map<
     string,
     {
@@ -32,6 +33,7 @@ export type StoreState = Preferences & {
     setToken: (nextToken: string) => void;
     toggleMute: (value?: boolean) => void;
     toggleCamera: (value?: boolean) => void;
+    toggleScreenShare: (value?: boolean) => void;
     toggleEcho: (value?: boolean) => void;
     toggleLocalVideoMirror: (value?: boolean) => void;
     getStream: (type: MediaType) => MediaStream;
@@ -49,6 +51,7 @@ export const useStore = create<StoreState>()(
         isLocalVideoMirrored: false,
         isMuted: false,
         isCameraOff: false,
+        isScreenSharing: false,
         allowEcho: false,
         roomId: undefined,
         isConnected: false,
@@ -56,6 +59,7 @@ export const useStore = create<StoreState>()(
         streamsMap: new Map(),
         camera: new MediaStream(),
         microphone: new MediaStream(),
+        screen: new MediaStream(),
         getStream: (type) => get()[type],
         setName: (nextName) => set({ name: nextName }),
         setRoomId: (value) => set({ roomId: value }),
@@ -67,6 +71,11 @@ export const useStore = create<StoreState>()(
         toggleCamera: (value?: boolean) =>
           set((state) => ({
             isCameraOff: value !== undefined ? value : !state.isCameraOff,
+          })),
+        toggleScreenShare: (value?: boolean) =>
+          set((state) => ({
+            isScreenSharing:
+              value !== undefined ? value : !state.isScreenSharing,
           })),
         toggleEcho: (value?: boolean) =>
           set((state) => ({

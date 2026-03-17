@@ -16,11 +16,11 @@ export function useWebRTC() {
   const clearMember = useStore.getState().clearMember;
   const peerMapRef = useRef<Map<string, SimplePeer.Instance>>(new Map());
   const peerBoundTracksRef = useRef<
-    Map<string, Partial<Record<"audio" | "video", MediaStreamTrack>>>
+    Map<string, Partial<Record<MediaType, MediaStreamTrack>>>
   >(new Map());
   const streamsMapRef = useRef<Map<string, MediaStream[]>>(new Map());
   const token2StreamIdObjMapRef = useRef<
-    Map<string, Record<MediaType, string>>
+    Map<string, Record<"camera" | "microphone", string> & { screen?: string }>
   >(new Map());
 
   const { name, isMuted, isCameraOff } = useStore(
@@ -40,6 +40,7 @@ export function useWebRTC() {
       const streamObj: Record<MediaType, MediaStream | undefined> = {
         camera: undefined,
         microphone: undefined,
+        screen: undefined,
       };
 
       streams.forEach((stream) => {
@@ -47,6 +48,7 @@ export function useWebRTC() {
         if (streamIdObj.camera === streamId) streamObj.camera = stream;
         else if (streamIdObj.microphone === streamId)
           streamObj.microphone = stream;
+        else if (streamIdObj.screen === streamId) streamObj.screen = stream;
       });
 
       setState((state) => {
@@ -85,7 +87,7 @@ export function useWebRTC() {
 
       peer = new SimplePeer({
         initiator: signal ? false : true,
-        streams: [getStream("camera"), getStream("microphone")],
+        streams: [getStream("camera"), getStream("microphone"), getStream("screen")],
         trickle: true,
         config: {
           iceServers: [
@@ -111,6 +113,7 @@ export function useWebRTC() {
           payload: {
             camera: getStream("camera").id,
             microphone: getStream("microphone").id,
+            screen: getStream("screen").id,
           },
         });
         webrtcEvents.send({
@@ -157,44 +160,47 @@ export function useWebRTC() {
   const syncCurrentStreams = useCallback(() => {
     const cameraStream = getStream("camera");
     const microphoneStream = getStream("microphone");
-    const audioTrack = microphoneStream.getAudioTracks()[0] ?? null;
-    const videoTrack = cameraStream.getVideoTracks()[0] ?? null;
+    const screenStream = getStream("screen");
+    const microphoneTrack = microphoneStream.getAudioTracks()[0] ?? null;
+    const cameraTrack = cameraStream.getVideoTracks()[0] ?? null;
+    const screenTrack = screenStream.getVideoTracks()[0] ?? null;
 
     peerMapRef.current.forEach((peer, token) => {
       const boundTracks = peerBoundTracksRef.current.get(token) ?? {};
 
       const syncTrack = (
-        kind: "audio" | "video",
+        mediaType: MediaType,
         nextTrack: MediaStreamTrack | null,
         stream: MediaStream,
       ) => {
-        const prevTrack = boundTracks[kind] ?? null;
+        const prevTrack = boundTracks[mediaType] ?? null;
         if (prevTrack?.id === nextTrack?.id) return;
 
         try {
           if (prevTrack && nextTrack) {
             peer.replaceTrack(prevTrack, nextTrack, stream);
-            boundTracks[kind] = nextTrack;
+            boundTracks[mediaType] = nextTrack;
             return;
           }
 
           if (!prevTrack && nextTrack) {
             peer.addTrack(nextTrack, stream);
-            boundTracks[kind] = nextTrack;
+            boundTracks[mediaType] = nextTrack;
             return;
           }
 
           if (prevTrack && !nextTrack) {
             peer.removeTrack(prevTrack, stream);
-            delete boundTracks[kind];
+            delete boundTracks[mediaType];
           }
         } catch {
           return;
         }
       };
 
-      syncTrack("audio", audioTrack, microphoneStream);
-      syncTrack("video", videoTrack, cameraStream);
+      syncTrack("microphone", microphoneTrack, microphoneStream);
+      syncTrack("camera", cameraTrack, cameraStream);
+      syncTrack("screen", screenTrack, screenStream);
 
       peerBoundTracksRef.current.set(token, boundTracks);
     });
@@ -204,6 +210,7 @@ export function useWebRTC() {
       payload: {
         camera: cameraStream.id,
         microphone: microphoneStream.id,
+        screen: screenStream.id,
       },
     });
   }, [getStream]);

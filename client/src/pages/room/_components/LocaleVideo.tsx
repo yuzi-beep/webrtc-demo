@@ -1,5 +1,5 @@
-import { useRef, useEffect } from "react";
-import { MicOff } from "lucide-react";
+import { useRef, useEffect, useState } from "react";
+import { MicOff, Monitor, Video } from "lucide-react";
 import { useStore } from "../_stores/useStore";
 import { useShallow } from "zustand/react/shallow";
 
@@ -17,20 +17,23 @@ export default function LocaleVideo() {
   const getStream = useStore.getState().getStream;
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const localAudioRef = useRef<HTMLAudioElement>(null);
+  const [displayMediaType, setDisplayMediaType] = useState<"camera" | "screen">(
+    "camera",
+  );
 
   useEffect(() => {
-    const stream = getStream("camera");
+    const stream = getStream(displayMediaType);
     const videoEl = localVideoRef.current;
     if (!videoEl) return;
 
-    if (isCameraOff) {
+    if (displayMediaType === "camera" && isCameraOff) {
       videoEl.srcObject = null;
       videoEl.load();
       return;
     }
 
     videoEl.srcObject = stream;
-  }, [getStream, isCameraOff]);
+  }, [displayMediaType, getStream, isCameraOff]);
 
   useEffect(() => {
     const stream = getStream("microphone");
@@ -61,8 +64,22 @@ export default function LocaleVideo() {
       <span className="absolute bottom-3 left-3 text-xs font-medium text-white bg-black/60 backdrop-blur-lg py-1 px-3 rounded-full tracking-wide">
         {name} (You)
       </span>
+      <button
+        className="absolute top-3 right-3 text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center text-white"
+        onClick={() =>
+          setDisplayMediaType((prev) =>
+            prev === "camera" ? "screen" : "camera",
+          )
+        }
+      >
+        {displayMediaType === "camera" ? (
+          <Monitor className="w-4 h-4" />
+        ) : (
+          <Video className="w-4 h-4" />
+        )}
+      </button>
       {isMuted && (
-        <span className="absolute top-3 right-3 text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center">
+        <span className="absolute top-3 left-3 text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center">
           <MicOff className="w-4 h-4" />
         </span>
       )}

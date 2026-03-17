@@ -3,6 +3,8 @@ import {
   Link2,
   Mic,
   MicOff,
+  Monitor,
+  MonitorOff,
   PhoneOff,
   Video,
   VideoOff,
@@ -16,12 +18,14 @@ export default function ControlBar() {
   const navigate = useNavigate();
   const toggleMute = useStore((state) => state.toggleMute);
   const toggleCamera = useStore((state) => state.toggleCamera);
+  const toggleScreenShare = useStore((state) => state.toggleScreenShare);
   const toggleEcho = useStore((state) => state.toggleEcho);
   const toggleLocalVideoMirror = useStore(
     (state) => state.toggleLocalVideoMirror,
   );
   const isMuted = useStore((state) => state.isMuted);
   const isCameraOff = useStore((state) => state.isCameraOff);
+  const isScreenSharing = useStore((state) => state.isScreenSharing);
   const isLocalVideoMirrored = useStore((state) => state.isLocalVideoMirrored);
   const allowEcho = useStore((state) => state.allowEcho);
   return (
@@ -44,6 +48,18 @@ export default function ControlBar() {
           <VideoOff className="w-5 h-5" />
         ) : (
           <Video className="w-5 h-5" />
+        )}
+      </button>
+      <button
+        className={`w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 ${isScreenSharing ? "!bg-accent/20 !border-accent !text-accent" : ""}`}
+        onClick={() => toggleScreenShare()}
+        title={isScreenSharing ? "Stop sharing screen" : "Share screen"}
+        id="toggle-screen-share-btn"
+      >
+        {isScreenSharing ? (
+          <MonitorOff className="w-5 h-5" />
+        ) : (
+          <Monitor className="w-5 h-5" />
         )}
       </button>
       <button

@@ -1,5 +1,3 @@
-import type { MediaType } from ".";
-
 export type WebRTCReceiveMessage =
   | {
       type: "MEDIA_STATE";
@@ -20,7 +18,9 @@ export type WebRTCReceiveMessage =
     }
   | {
       type: "STREAM_SYNC";
-      payload: Record<MediaType, string>;
+      payload: Record<"camera" | "microphone", string> & {
+        screen?: string;
+      };
     };
 
 export type WebRTCInternalMessage =

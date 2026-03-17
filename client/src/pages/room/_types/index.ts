@@ -3,7 +3,7 @@ import type { Socket } from "socket.io-client";
 export * from "./socket-events";
 export * from "./webrtc-events";
 
-export type MediaType = "camera" | "microphone";
+export type MediaType = "camera" | "microphone" | "screen";
 
 export interface MemberMeta {
   name: string;
