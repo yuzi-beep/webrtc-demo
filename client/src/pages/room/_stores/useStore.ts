@@ -46,7 +46,7 @@ export const useStore = create<StoreState>()(
   devtools(
     persist(
       (set, get) => ({
-        name: `user-${Date.now().toString().slice(-4)}`,
+        name: `用户-${Date.now().toString().slice(-4)}`,
         token: uuidv4(),
         isLocalVideoMirrored: false,
         isMuted: false,

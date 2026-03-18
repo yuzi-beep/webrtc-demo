@@ -37,7 +37,7 @@ export default function ControlBar() {
       <button
         className={`${baseButtonClass} ${!isMuted ? activeButtonClass : ""}`}
         onClick={() => toggleMute()}
-        title={isMuted ? "Unmute" : "Mute"}
+        title={isMuted ? "取消静音" : "静音"}
         id="toggle-mute-btn"
       >
         {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
@@ -45,7 +45,7 @@ export default function ControlBar() {
       <button
         className={`${baseButtonClass} ${!isCameraOff ? activeButtonClass : ""}`}
         onClick={() => toggleCamera()}
-        title={isCameraOff ? "Turn on camera" : "Turn off camera"}
+        title={isCameraOff ? "开启摄像头" : "关闭摄像头"}
         id="toggle-camera-btn"
       >
         {isCameraOff ? (
@@ -57,7 +57,7 @@ export default function ControlBar() {
       <button
         className={`${baseButtonClass} ${isScreenSharing ? activeButtonClass : ""}`}
         onClick={() => toggleScreenShare()}
-        title={isScreenSharing ? "Stop sharing screen" : "Share screen"}
+        title={isScreenSharing ? "停止共享屏幕" : "共享屏幕"}
         id="toggle-screen-share-btn"
       >
         {isScreenSharing ? (
@@ -69,7 +69,7 @@ export default function ControlBar() {
       <button
         className={`${baseButtonClass} ${isLocalVideoMirrored ? activeButtonClass : ""}`}
         onClick={() => toggleLocalVideoMirror()}
-        title={isLocalVideoMirrored ? "Disable mirror" : "Enable mirror"}
+        title={isLocalVideoMirrored ? "关闭镜像" : "开启镜像"}
         id="toggle-mirror-btn"
       >
         <FlipHorizontal2 className="w-5 h-5" />
@@ -77,7 +77,7 @@ export default function ControlBar() {
       <button
         className={`${baseButtonClass} ${allowEcho ? activeButtonClass : ""}`}
         onClick={() => toggleEcho()}
-        title={allowEcho ? "Disable echo" : "Enable echo"}
+        title={allowEcho ? "关闭回声" : "开启回声"}
         id="toggle-echo-btn"
       >
         {allowEcho ? (
@@ -89,16 +89,16 @@ export default function ControlBar() {
       <button
         className="flex h-11 items-center justify-center gap-1.5 rounded-full border border-slate-700 bg-slate-900 px-4 text-sm font-medium text-slate-100 transition hover:bg-slate-800 sm:h-13 sm:px-5"
         onClick={() => navigator.clipboard.writeText(window.location.href)}
-        title="Copy meeting link"
+        title="复制会议链接"
         id="copy-link-btn"
       >
         <Link2 className="w-4 h-4" />{" "}
-        <span className="text-[13px]">Copy Link</span>
+        <span className="text-[13px]">复制链接</span>
       </button>
       <button
         className="flex h-11 w-11 items-center justify-center rounded-full border border-rose-500 bg-rose-500 text-white transition hover:bg-rose-400 sm:h-13 sm:w-13"
         onClick={() => navigate("/")}
-        title="Leave meeting"
+        title="离开会议"
         id="leave-room-btn"
       >
         <PhoneOff className="w-5 h-5" />

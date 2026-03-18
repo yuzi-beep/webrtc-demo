@@ -62,7 +62,7 @@ export default function LocaleVideo() {
       />
       <audio ref={localAudioRef} autoPlay muted={!allowEcho} playsInline />
       <span className="absolute bottom-3 left-3 rounded-full bg-black/60 px-3 py-1 text-xs font-medium tracking-wide text-white backdrop-blur">
-        {name} (You)
+        {name}（你）
       </span>
       <button
         className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white"

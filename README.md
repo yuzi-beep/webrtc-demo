@@ -1,6 +1,6 @@
 # WebRTC Demo
 
-一个基于 **React + Vite + TypeScript**（前端）和 **NestJS + Socket.IO**（后端）的多人音视频会议 Demo。
+一个基于 **React + Vite + TypeScript**（前端）和 **NestJS + Socket.IO**（后端）的多人音视频会议示例项目。
 
 - 支持创建/加入房间
 - 最多 4 人同房间通话
@@ -58,9 +58,9 @@ bun run dev
 
 ## 使用说明
 
-1. 打开首页后点击 **Create New Meeting** 创建会议。
+1. 打开首页后点击 **创建新会议** 创建会议。
 2. 将房间链接分享给其他人。
-3. 其他人可粘贴完整链接或房间 ID 加入。
+3. 其他人可粘贴完整链接或房间号加入。
 4. 房间人数上限为 4，超过会收到 `ROOM_FULL`。
 
 ## 常用脚本
@@ -92,7 +92,7 @@ bun run dev
 
 ## 故障排查
 
-- 前端一直显示 "Connecting to room..."
+- 前端一直显示“正在连接房间...”
   - 确认后端已启动并可访问 `http://localhost:3000/health`
   - 检查浏览器控制台是否有 Socket 连接报错
 - 无法获取摄像头/麦克风
@@ -102,6 +102,6 @@ bun run dev
   - 将 `SIGNALING_SERVER` 改为可被其他设备访问的 IP 地址
   - 同时确保防火墙放行对应端口
 
-## License
+## 许可说明
 
-当前仓库未显式声明 License，默认仅用于学习与内部演示。
+当前仓库未显式声明开源许可，默认仅用于学习与内部演示。

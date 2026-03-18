@@ -44,14 +44,14 @@ export default function RoomPage() {
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-slate-950/95">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-700 border-t-indigo-400" />
           <p className="text-sm text-slate-300">
-            Connecting to room...
+            正在连接房间...
           </p>
         </div>
       )}
       {/* Header */}
       <div className="flex flex-col gap-3 border-b border-slate-800 bg-slate-900/60 px-4 py-3 backdrop-blur md:flex-row md:items-center md:justify-between md:px-5">
         <span className="w-fit rounded-full border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-slate-300 sm:text-[13px]">
-          Room: {displayRoomId}
+          房间号：{displayRoomId}
         </span>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <UserMetaEditor name={name} onSave={() => {}} />

@@ -43,12 +43,12 @@ export default function HomePage() {
         </div>
 
         <h1 className="mb-2 bg-linear-to-r from-indigo-300 via-violet-300 to-blue-300 bg-clip-text text-3xl font-bold text-transparent">
-          WebRTC Meet
+          WebRTC 会议
         </h1>
         <p className="mb-7 text-sm leading-relaxed text-slate-300 sm:text-[15px]">
-          Premium video conferencing — up to 4 participants,
+          轻量音视频会议 —— 最多支持 4 人，
           <br />
-          no sign-up required.
+          无需注册即可使用。
         </p>
 
         {/* Create Button */}
@@ -58,19 +58,19 @@ export default function HomePage() {
           id="create-room-btn"
         >
           <span className="absolute inset-0 bg-linear-to-r from-white/10 via-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-          <span className="relative">✨ Create New Meeting</span>
+          <span className="relative">✨ 创建新会议</span>
         </button>
 
         {/* Join Section */}
         <div className="mt-6 border-t border-white/10 pt-6">
           <p className="mb-3 text-xs text-slate-400">
-            Or join an existing meeting
+            或加入已有会议
           </p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
               className="h-11 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-4 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-indigo-400"
               type="text"
-              placeholder="Paste room link or ID"
+              placeholder="粘贴房间链接或房间号"
               value={roomInput}
               onChange={(e) => setRoomInput(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -82,7 +82,7 @@ export default function HomePage() {
               disabled={!roomInput.trim()}
               id="join-room-btn"
             >
-              Join
+              加入
             </button>
           </div>
         </div>

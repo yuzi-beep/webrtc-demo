@@ -63,12 +63,12 @@ export default function ChatPanel({
   return (
     <aside className="flex h-56 w-full flex-col border-t border-slate-800 bg-slate-900/60 backdrop-blur lg:h-full lg:w-80 lg:border-l lg:border-t-0">
       <div className="border-b border-slate-800 px-4 py-3 text-sm font-medium text-slate-100">
-        Chat
+        聊天
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-2">
         {messages.length === 0 ? (
           <p className="mt-3 text-center text-xs text-slate-400">
-            No messages yet
+            暂无消息
           </p>
         ) : (
           messages.map((message) => (
@@ -82,7 +82,7 @@ export default function ChatPanel({
             >
               <div className="mb-1 text-[11px] text-slate-400">
                 {message.isSelf
-                  ? "You"
+                  ? "你"
                   : message.senderName || message.senderId}
               </div>
               <div className="wrap-break-word text-sm text-slate-100">
@@ -101,14 +101,14 @@ export default function ChatPanel({
               onSend();
             }
           }}
-          placeholder="Type a message..."
+          placeholder="输入消息..."
           className="h-10 flex-1 rounded-lg border border-slate-700 bg-slate-800 px-3 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-indigo-400"
         />
         <button
           onClick={onSend}
           className="h-10 rounded-lg border border-indigo-500/40 bg-indigo-500/20 px-3 text-sm text-indigo-200 hover:opacity-90"
         >
-          Send
+          发送
         </button>
       </div>
     </aside>

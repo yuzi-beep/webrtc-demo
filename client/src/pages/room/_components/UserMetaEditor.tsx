@@ -29,13 +29,13 @@ export default function UserMetaEditor({
           }
         }}
         className="h-8 min-w-0 flex-1 rounded-full border border-slate-700 bg-slate-800 px-3 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-indigo-400"
-        placeholder="Your name"
+        placeholder="你的昵称"
       />
       <button
         onClick={handleSave}
         className="h-8 whitespace-nowrap rounded-full border border-indigo-500/40 bg-indigo-500/20 px-3 text-xs text-indigo-200 hover:opacity-90"
       >
-        Rename
+        保存
       </button>
     </div>
   );
