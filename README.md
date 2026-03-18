@@ -84,11 +84,22 @@ bun run dev
 
 - 前端开发端口：`5173`
 - 后端默认端口：`3000`
-- 前端 Socket 连接地址当前写死在：
-  - `client/src/pages/room/_hooks/useSocket.ts`
-  - `const SIGNALING_SERVER = "http://localhost:3000"`
 
-如果你把后端部署到其他地址，请同步修改该常量。
+前端通过环境变量配置信令服务地址：
+
+- 变量名：`VITE_SIGNALING_SERVER_URL`
+- 示例文件：`client/.env.example`
+- 默认回退：`http://localhost:3000`（未设置时）
+
+配置示例：
+
+```bash
+cd client
+cp .env.example .env
+# 按需修改 VITE_SIGNALING_SERVER_URL
+```
+
+如果你把后端部署到其他地址，请修改 `.env` 中的 `VITE_SIGNALING_SERVER_URL`。
 
 ## 故障排查
 
@@ -99,7 +110,7 @@ bun run dev
   - 确认浏览器授予了媒体权限
   - 建议使用最新版 Chrome/Edge
 - 局域网多设备联调失败
-  - 将 `SIGNALING_SERVER` 改为可被其他设备访问的 IP 地址
+  - 将 `VITE_SIGNALING_SERVER_URL` 改为可被其他设备访问的 IP 地址
   - 同时确保防火墙放行对应端口
 
 ## 许可说明

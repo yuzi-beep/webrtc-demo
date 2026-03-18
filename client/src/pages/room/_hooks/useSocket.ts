@@ -4,7 +4,9 @@ import { socketEvents } from "@/pages/room/_utils/event-bus/socket-events";
 import type { SocketEventMessage, SocketEventType } from "@/pages/room/_types";
 import { useStore } from "../_stores/useStore";
 
-const SIGNALING_SERVER = "http://localhost:3000";
+const SIGNALING_SERVER =
+  import.meta.env.VITE_SIGNALING_SERVER_URL?.trim() ||
+  "http://localhost:3000";
 
 /**
  * Manages the Socket.io connection lifecycle.
