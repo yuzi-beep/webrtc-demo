@@ -11,6 +11,33 @@ import ControlBar from "@/pages/room/_components/ControlBar";
 import { useController } from "@/pages/room/_hooks/useController";
 import { useShallow } from "zustand/react/shallow";
 import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
+import PreJoinConfigPanel, {
+  type PreJoinPreferences,
+} from "@/pages/room/_components/PreJoinConfigPanel";
+
+const PRE_JOIN_PREFERENCES_STORAGE_KEY = "room-preferences-v1";
+
+const parsePreJoinPreferences = (
+  rawValue: string | null,
+): PreJoinPreferences | null => {
+  if (!rawValue) return null;
+  try {
+    const parsedValue = JSON.parse(rawValue) as Partial<PreJoinPreferences>;
+    if (
+      typeof parsedValue.name !== "string" ||
+      typeof parsedValue.isMuted !== "boolean" ||
+      typeof parsedValue.isCameraOff !== "boolean" ||
+      typeof parsedValue.isLocalVideoMirrored !== "boolean" ||
+      typeof parsedValue.allowEcho !== "boolean"
+    ) {
+      return null;
+    }
+    return parsedValue as PreJoinPreferences;
+  } catch {
+    return null;
+  }
+};
 const gridClasses: Record<number, string> = {
   1: "grid-cols-1 grid-rows-1",
   2: "grid-cols-1 grid-rows-2 sm:grid-cols-2 sm:grid-rows-1",
@@ -18,9 +45,15 @@ const gridClasses: Record<number, string> = {
   4: "grid-cols-1 grid-rows-4 sm:grid-cols-2 sm:grid-rows-2",
 };
 
-export default function RoomPage() {
+function ActiveRoomContent() {
   const { t } = useTranslation();
-  const { name, token, roomId, isConnected, memberMetaMap } = useStore(
+  const {
+    name,
+    token,
+    roomId,
+    isConnected,
+    memberMetaMap,
+  } = useStore(
     useShallow((state) => ({
       name: state.name,
       token: state.token,
@@ -83,4 +116,69 @@ export default function RoomPage() {
       <ControlBar />
     </div>
   );
+}
+
+export default function RoomPage() {
+  const { t } = useTranslation();
+  const setState = useStore.setState;
+  const { name, isMuted, isCameraOff, isLocalVideoMirrored, allowEcho } =
+    useStore(
+      useShallow((state) => ({
+        name: state.name,
+        isMuted: state.isMuted,
+        isCameraOff: state.isCameraOff,
+        isLocalVideoMirrored: state.isLocalVideoMirrored,
+        allowEcho: state.allowEcho,
+      })),
+    );
+  const [entryPhase, setEntryPhase] = useState<"checking" | "config" | "ready">(
+    "checking",
+  );
+
+  useEffect(() => {
+    const sessionPreferences = parsePreJoinPreferences(
+      window.sessionStorage.getItem(PRE_JOIN_PREFERENCES_STORAGE_KEY),
+    );
+    if (sessionPreferences) {
+      setState(sessionPreferences);
+      setEntryPhase("ready");
+      return;
+    }
+    setEntryPhase("config");
+  }, [setState]);
+
+  if (entryPhase === "checking") {
+    return (
+      <div className="flex h-dvh w-full items-center justify-center overflow-hidden bg-slate-950 text-slate-100">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-700 border-t-indigo-400" />
+          <p className="text-sm text-slate-300">{t("room.preJoin.loading")}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (entryPhase === "config") {
+    return (
+      <PreJoinConfigPanel
+        defaultPreferences={{
+          name,
+          isMuted,
+          isCameraOff,
+          isLocalVideoMirrored,
+          allowEcho,
+        }}
+        onConfirm={(preferences) => {
+          setState(preferences);
+          window.sessionStorage.setItem(
+            PRE_JOIN_PREFERENCES_STORAGE_KEY,
+            JSON.stringify(preferences),
+          );
+          setEntryPhase("ready");
+        }}
+      />
+    );
+  }
+
+  return <ActiveRoomContent />;
 }

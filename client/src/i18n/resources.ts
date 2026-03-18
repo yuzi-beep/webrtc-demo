@@ -13,6 +13,17 @@ export const resources = {
       room: {
         connecting: "正在连接房间...",
         roomIdLabel: "房间号：{{roomId}}",
+        preJoin: {
+          loading: "正在加载配置...",
+          title: "入会前配置",
+          subtitle: "确认设备与个人设置后再加入房间",
+          displayName: "昵称",
+          camera: "开启摄像头",
+          microphone: "开启麦克风",
+          mirror: "本地镜像",
+          echo: "回声",
+          start: "开始加入",
+        },
       },
       chat: {
         title: "聊天",
@@ -59,6 +70,17 @@ export const resources = {
       room: {
         connecting: "Connecting to room...",
         roomIdLabel: "Room: {{roomId}}",
+        preJoin: {
+          loading: "Loading preferences...",
+          title: "Pre-join setup",
+          subtitle: "Confirm your device and profile settings before joining",
+          displayName: "Display name",
+          camera: "Camera on",
+          microphone: "Microphone on",
+          mirror: "Local mirror",
+          echo: "Echo",
+          start: "Join now",
+        },
       },
       chat: {
         title: "Chat",
