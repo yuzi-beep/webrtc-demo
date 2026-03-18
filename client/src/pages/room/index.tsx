@@ -41,7 +41,7 @@ export default function RoomPage() {
 
   // ── Main UI ──
   return (
-    <div className="flex min-h-screen w-full flex-col bg-slate-950 text-slate-100">
+    <div className="flex h-dvh w-full flex-col overflow-hidden bg-slate-950 text-slate-100">
       {!isConnected && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-slate-950/95">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-700 border-t-indigo-400" />
@@ -51,7 +51,7 @@ export default function RoomPage() {
         </div>
       )}
       {/* Header */}
-      <div className="flex flex-col gap-3 border-b border-slate-800 bg-slate-900/60 px-4 py-3 backdrop-blur md:flex-row md:items-center md:justify-between md:px-5">
+      <div className="flex flex-col gap-3 border-b border-slate-800 bg-slate-900/60 px-4 py-3 backdrop-blur md:flex-row md:items-center md:justify-start md:gap-3 md:px-5">
         <span className="w-fit rounded-full border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-slate-300 sm:text-[13px]">
           {t("room.roomIdLabel", { roomId: displayRoomId })}
         </span>
@@ -63,10 +63,10 @@ export default function RoomPage() {
         </div>
       </div>
       {/* Main Content */}
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
         {/* Video Grid */}
         <div
-          className={`grid flex-1 auto-rows-fr gap-2 p-2 transition-all duration-300 sm:gap-3 sm:p-3 ${gridClasses[totalParticipants] || "grid-cols-1 grid-rows-4 sm:grid-cols-2 sm:grid-rows-2"}`}
+          className={`grid min-h-0 flex-1 auto-rows-fr gap-2 overflow-hidden p-2 transition-all duration-300 sm:gap-3 sm:p-3 ${gridClasses[totalParticipants] || "grid-cols-1 grid-rows-4 sm:grid-cols-2 sm:grid-rows-2"}`}
           style={{ gridAutoRows: "1fr" }}
         >
           {/* Local Video */}
