@@ -25,27 +25,27 @@ export default function HomePage() {
 
   return (
     <div
-      className="w-full h-full flex items-center justify-center bg-bg-primary relative overflow-hidden"
+      className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-4 py-8"
       style={{
         backgroundImage:
           "radial-gradient(ellipse at top left, rgba(108,92,231,0.15) 0%, transparent 50%), radial-gradient(ellipse at bottom right, rgba(168,85,247,0.1) 0%, transparent 50%)",
       }}
     >
       {/* Animated background orbs */}
-      <div className="absolute w-[400px] h-[400px] rounded-full bg-accent/15 -top-[100px] -left-[100px] blur-[80px] animate-float" />
-      <div className="absolute w-[350px] h-[350px] rounded-full bg-purple-500/12 -bottom-[80px] -right-[80px] blur-[80px] animate-float-delayed" />
+      <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl" />
+      <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-violet-500/20 blur-3xl" />
 
       {/* Card */}
-      <div className="relative z-10 bg-bg-glass backdrop-blur-[20px] border border-border-glass rounded-3xl p-12 text-center max-w-[480px] w-[90%] shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+      <div className="relative z-10 w-full max-w-md rounded-3xl border border-white/10 bg-slate-900/70 p-6 text-center shadow-2xl backdrop-blur-xl sm:p-8">
         {/* Logo */}
-        <div className="w-[72px] h-[72px] mx-auto mb-6 gradient-primary rounded-2xl flex items-center justify-center text-[32px] shadow-[0_0_30px_rgba(108,92,231,0.3)]">
+        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-500 via-violet-500 to-blue-500 text-3xl shadow-lg shadow-indigo-500/30">
           📹
         </div>
 
-        <h1 className="text-[28px] font-bold mb-2 gradient-text">
+        <h1 className="mb-2 bg-linear-to-r from-indigo-300 via-violet-300 to-blue-300 bg-clip-text text-3xl font-bold text-transparent">
           WebRTC Meet
         </h1>
-        <p className="text-[15px] text-text-secondary mb-9 leading-relaxed">
+        <p className="mb-7 text-sm leading-relaxed text-slate-300 sm:text-[15px]">
           Premium video conferencing — up to 4 participants,
           <br />
           no sign-up required.
@@ -53,22 +53,22 @@ export default function HomePage() {
 
         {/* Create Button */}
         <button
-          className="w-full py-4 px-8 text-base font-semibold text-white gradient-primary rounded-xl transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] relative overflow-hidden tracking-wide hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(108,92,231,0.3)] active:translate-y-0 group"
+          className="group relative w-full overflow-hidden rounded-xl bg-linear-to-r from-indigo-500 via-violet-500 to-blue-500 px-6 py-3.5 text-base font-semibold tracking-wide text-white transition hover:opacity-90"
           onClick={createRoom}
           id="create-room-btn"
         >
-          <span className="absolute inset-0 gradient-shine opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <span className="absolute inset-0 bg-linear-to-r from-white/10 via-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           <span className="relative">✨ Create New Meeting</span>
         </button>
 
         {/* Join Section */}
-        <div className="mt-6 pt-6 border-t border-border-glass">
-          <p className="text-[13px] text-text-muted mb-3">
+        <div className="mt-6 border-t border-white/10 pt-6">
+          <p className="mb-3 text-xs text-slate-400">
             Or join an existing meeting
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <input
-              className="flex-1 py-3 px-4 text-sm font-sans text-text-primary bg-bg-secondary border border-border-glass rounded-lg outline-none transition-all duration-300 placeholder:text-text-muted focus:border-accent focus:shadow-[0_0_0_3px_rgba(108,92,231,0.15)]"
+              className="h-11 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-4 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-indigo-400"
               type="text"
               placeholder="Paste room link or ID"
               value={roomInput}
@@ -77,7 +77,7 @@ export default function HomePage() {
               id="join-room-input"
             />
             <button
-              className="py-3 px-5 text-sm font-semibold text-text-primary bg-bg-tertiary border border-border-glass rounded-lg transition-all duration-300 hover:bg-bg-glass-hover hover:border-accent disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-11 rounded-lg border border-slate-700 bg-slate-800 px-5 text-sm font-semibold text-slate-100 transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={joinRoom}
               disabled={!roomInput.trim()}
               id="join-room-btn"

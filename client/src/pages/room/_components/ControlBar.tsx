@@ -28,10 +28,14 @@ export default function ControlBar() {
   const isScreenSharing = useStore((state) => state.isScreenSharing);
   const isLocalVideoMirrored = useStore((state) => state.isLocalVideoMirrored);
   const allowEcho = useStore((state) => state.allowEcho);
+  const baseButtonClass =
+    "flex h-11 w-11 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-100 transition hover:bg-slate-800 sm:h-13 sm:w-13";
+  const activeButtonClass = "border-indigo-400 bg-indigo-500/20 text-indigo-200";
+
   return (
-    <div className="flex items-center justify-center gap-3 px-5 py-4 border-t border-border-glass bg-bg-secondary/60 backdrop-blur-[10px]">
+    <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-800 bg-slate-900/70 px-3 py-3 backdrop-blur sm:gap-3 sm:px-5 sm:py-4">
       <button
-        className={`w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 ${!isMuted ? "!bg-accent/20 !border-accent !text-accent" : ""}`}
+        className={`${baseButtonClass} ${!isMuted ? activeButtonClass : ""}`}
         onClick={() => toggleMute()}
         title={isMuted ? "Unmute" : "Mute"}
         id="toggle-mute-btn"
@@ -39,7 +43,7 @@ export default function ControlBar() {
         {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
       </button>
       <button
-        className={`w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 ${!isCameraOff ? "!bg-accent/20 !border-accent !text-accent" : ""}`}
+        className={`${baseButtonClass} ${!isCameraOff ? activeButtonClass : ""}`}
         onClick={() => toggleCamera()}
         title={isCameraOff ? "Turn on camera" : "Turn off camera"}
         id="toggle-camera-btn"
@@ -51,7 +55,7 @@ export default function ControlBar() {
         )}
       </button>
       <button
-        className={`w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 ${isScreenSharing ? "!bg-accent/20 !border-accent !text-accent" : ""}`}
+        className={`${baseButtonClass} ${isScreenSharing ? activeButtonClass : ""}`}
         onClick={() => toggleScreenShare()}
         title={isScreenSharing ? "Stop sharing screen" : "Share screen"}
         id="toggle-screen-share-btn"
@@ -63,7 +67,7 @@ export default function ControlBar() {
         )}
       </button>
       <button
-        className={`w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 ${isLocalVideoMirrored ? "!bg-accent/20 !border-accent !text-accent" : ""}`}
+        className={`${baseButtonClass} ${isLocalVideoMirrored ? activeButtonClass : ""}`}
         onClick={() => toggleLocalVideoMirror()}
         title={isLocalVideoMirrored ? "Disable mirror" : "Enable mirror"}
         id="toggle-mirror-btn"
@@ -71,7 +75,7 @@ export default function ControlBar() {
         <FlipHorizontal2 className="w-5 h-5" />
       </button>
       <button
-        className={`w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 ${allowEcho ? "!bg-accent/20 !border-accent !text-accent" : ""}`}
+        className={`${baseButtonClass} ${allowEcho ? activeButtonClass : ""}`}
         onClick={() => toggleEcho()}
         title={allowEcho ? "Disable echo" : "Enable echo"}
         id="toggle-echo-btn"
@@ -83,7 +87,7 @@ export default function ControlBar() {
         )}
       </button>
       <button
-        className="h-[52px] rounded-full flex items-center justify-center text-sm transition-all duration-300 bg-bg-glass backdrop-blur-[10px] border border-border-glass text-text-primary hover:bg-bg-glass-hover hover:scale-110 px-5 gap-1.5 font-medium"
+        className="flex h-11 items-center justify-center gap-1.5 rounded-full border border-slate-700 bg-slate-900 px-4 text-sm font-medium text-slate-100 transition hover:bg-slate-800 sm:h-13 sm:px-5"
         onClick={() => navigator.clipboard.writeText(window.location.href)}
         title="Copy meeting link"
         id="copy-link-btn"
@@ -92,7 +96,7 @@ export default function ControlBar() {
         <span className="text-[13px]">Copy Link</span>
       </button>
       <button
-        className="w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl transition-all duration-300 bg-danger border border-danger text-white hover:bg-danger-hover hover:scale-110"
+        className="flex h-11 w-11 items-center justify-center rounded-full border border-rose-500 bg-rose-500 text-white transition hover:bg-rose-400 sm:h-13 sm:w-13"
         onClick={() => navigate("/")}
         title="Leave meeting"
         id="leave-room-btn"

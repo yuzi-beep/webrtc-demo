@@ -61,13 +61,13 @@ export default function ChatPanel({
     setInputValue("");
   };
   return (
-    <aside className="w-[320px] h-full border-l border-border-glass bg-bg-secondary/60 backdrop-blur-[10px] flex flex-col">
-      <div className="px-4 py-3 border-b border-border-glass text-sm font-medium text-text-primary">
+    <aside className="flex h-56 w-full flex-col border-t border-slate-800 bg-slate-900/60 backdrop-blur lg:h-full lg:w-80 lg:border-l lg:border-t-0">
+      <div className="border-b border-slate-800 px-4 py-3 text-sm font-medium text-slate-100">
         Chat
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-2">
         {messages.length === 0 ? (
-          <p className="text-xs text-text-secondary text-center mt-3">
+          <p className="mt-3 text-center text-xs text-slate-400">
             No messages yet
           </p>
         ) : (
@@ -76,23 +76,23 @@ export default function ChatPanel({
               key={message.id}
               className={`rounded-lg px-3 py-2 border ${
                 message.isSelf
-                  ? "bg-accent/10 border-accent/40"
-                  : "bg-bg-glass border-border-glass"
+                  ? "border-indigo-400/40 bg-indigo-500/10"
+                  : "border-slate-700 bg-slate-800"
               }`}
             >
-              <div className="text-[11px] text-text-secondary mb-1">
+              <div className="mb-1 text-[11px] text-slate-400">
                 {message.isSelf
                   ? "You"
                   : message.senderName || message.senderId}
               </div>
-              <div className="text-sm text-text-primary wrap-break-word">
+              <div className="wrap-break-word text-sm text-slate-100">
                 {message.text}
               </div>
             </div>
           ))
         )}
       </div>
-      <div className="p-3 border-t border-border-glass flex items-center gap-2">
+      <div className="flex items-center gap-2 border-t border-slate-800 p-3">
         <input
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
@@ -102,11 +102,11 @@ export default function ChatPanel({
             }
           }}
           placeholder="Type a message..."
-          className="flex-1 h-10 rounded-lg px-3 text-sm bg-bg-glass border border-border-glass text-text-primary placeholder:text-text-secondary focus:outline-none"
+          className="h-10 flex-1 rounded-lg border border-slate-700 bg-slate-800 px-3 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-indigo-400"
         />
         <button
           onClick={onSend}
-          className="h-10 px-3 rounded-lg text-sm bg-accent/20 border border-accent text-accent hover:opacity-90"
+          className="h-10 rounded-lg border border-indigo-500/40 bg-indigo-500/20 px-3 text-sm text-indigo-200 hover:opacity-90"
         >
           Send
         </button>

@@ -51,21 +51,21 @@ export default function LocaleVideo() {
 
   return (
     <div
-      className={`relative rounded-xl overflow-hidden bg-bg-secondary border border-border-glass`}
+      className="relative min-h-44 overflow-hidden rounded-xl border border-slate-700 bg-black"
     >
       <video
         ref={localVideoRef}
         autoPlay
         muted
         playsInline
-        className={`w-full h-full object-cover block ${isMirror ? "mirror-x" : ""}`}
+        className={`block h-full w-full object-contain ${isMirror ? "-scale-x-100" : ""}`}
       />
       <audio ref={localAudioRef} autoPlay muted={!allowEcho} playsInline />
-      <span className="absolute bottom-3 left-3 text-xs font-medium text-white bg-black/60 backdrop-blur-lg py-1 px-3 rounded-full tracking-wide">
+      <span className="absolute bottom-3 left-3 rounded-full bg-black/60 px-3 py-1 text-xs font-medium tracking-wide text-white backdrop-blur">
         {name} (You)
       </span>
       <button
-        className="absolute top-3 right-3 text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center text-white"
+        className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white"
         onClick={() =>
           setDisplayMediaType((prev) =>
             prev === "camera" ? "screen" : "camera",
@@ -79,7 +79,7 @@ export default function LocaleVideo() {
         )}
       </button>
       {isMuted && (
-        <span className="absolute top-3 left-3 text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center">
+        <span className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white">
           <MicOff className="w-4 h-4" />
         </span>
       )}

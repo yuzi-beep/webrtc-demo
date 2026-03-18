@@ -12,9 +12,9 @@ import { useController } from "@/pages/room/_hooks/useController";
 import { useShallow } from "zustand/react/shallow";
 const gridClasses: Record<number, string> = {
   1: "grid-cols-1 grid-rows-1",
-  2: "grid-cols-2 grid-rows-1",
-  3: "grid-cols-2 grid-rows-2",
-  4: "grid-cols-2 grid-rows-2",
+  2: "grid-cols-1 grid-rows-2 sm:grid-cols-2 sm:grid-rows-1",
+  3: "grid-cols-1 grid-rows-3 sm:grid-cols-2 sm:grid-rows-2",
+  4: "grid-cols-1 grid-rows-4 sm:grid-cols-2 sm:grid-rows-2",
 };
 
 export default function RoomPage() {
@@ -39,33 +39,32 @@ export default function RoomPage() {
 
   // ── Main UI ──
   return (
-    <div className="w-full h-full bg-bg-primary flex flex-col">
-      Connecting Overlay
+    <div className="flex min-h-screen w-full flex-col bg-slate-950 text-slate-100">
       {!isConnected && (
-        <div className="fixed inset-0 z-50 bg-bg-primary flex flex-col items-center justify-center gap-4">
-          <div className="w-10 h-10 border-3 border-border-glass border-t-accent rounded-full animate-spin-custom" />
-          <p className="text-[15px] text-text-secondary">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-slate-950/95">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-700 border-t-indigo-400" />
+          <p className="text-sm text-slate-300">
             Connecting to room...
           </p>
         </div>
       )}
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-border-glass bg-bg-secondary/60 backdrop-blur-[10px]">
-        <span className="text-[13px] text-text-secondary font-mono bg-bg-glass py-1.5 px-3.5 rounded-full border border-border-glass">
+      <div className="flex flex-col gap-3 border-b border-slate-800 bg-slate-900/60 px-4 py-3 backdrop-blur md:flex-row md:items-center md:justify-between md:px-5">
+        <span className="w-fit rounded-full border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-slate-300 sm:text-[13px]">
           Room: {displayRoomId}
         </span>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <UserMetaEditor name={name} onSave={() => {}} />
-          <span className="text-[13px] text-text-secondary flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5 text-xs text-slate-300 sm:text-[13px]">
             <Users className="w-4 h-4" /> {totalParticipants} / 4
           </span>
         </div>
       </div>
       {/* Main Content */}
-      <div className="flex-1 min-h-0 flex">
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         {/* Video Grid */}
         <div
-          className={`flex-1 min-h-0 grid gap-2 p-2 transition-all duration-300 ${gridClasses[totalParticipants] || "grid-cols-2 grid-rows-2"}`}
+          className={`grid flex-1 auto-rows-fr gap-2 p-2 transition-all duration-300 sm:gap-3 sm:p-3 ${gridClasses[totalParticipants] || "grid-cols-1 grid-rows-4 sm:grid-cols-2 sm:grid-rows-2"}`}
           style={{ gridAutoRows: "1fr" }}
         >
           {/* Local Video */}

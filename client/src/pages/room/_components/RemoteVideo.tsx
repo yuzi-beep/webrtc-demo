@@ -77,34 +77,34 @@ export default function RemoteVideo({
   return (
     <>
       <div
-        className={`relative rounded-xl overflow-hidden bg-bg-secondary border border-border-glass`}
+        className="relative min-h-44 overflow-hidden rounded-xl border border-slate-700 bg-black"
       >
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
-          className="w-full h-full object-cover block"
+          className="block h-full w-full object-contain"
         />
         <audio ref={audioRef} autoPlay playsInline muted={isPlaybackMuted} />
-        <span className="absolute bottom-3 left-3 text-xs font-medium text-white bg-black/60 backdrop-blur-lg py-1 px-3 rounded-full tracking-wide">
+        <span className="absolute bottom-3 left-3 rounded-full bg-black/60 px-3 py-1 text-xs font-medium tracking-wide text-white backdrop-blur">
           {name}
         </span>
-        <div className="absolute top-3 left-3 flex items-center gap-1.5">
+        <div className="absolute left-3 top-3 flex items-center gap-1.5">
           {isMuted && (
-            <span className="text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white">
               <MicOff className="w-4 h-4" />
             </span>
           )}
           {isCameraOff && (
-            <span className="text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white">
               <VideoOff className="w-4 h-4" />
             </span>
           )}
         </div>
-        <div className="absolute top-3 right-3 flex items-center gap-1.5">
+        <div className="absolute right-3 top-3 flex items-center gap-1.5">
           <button
-            className="text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white"
             onClick={() =>
               setDisplayMediaType((prev) =>
                 prev === "camera" ? "screen" : "camera",
@@ -118,7 +118,7 @@ export default function RemoteVideo({
             )}
           </button>
           <button
-            className={`text-base bg-black/50 rounded-full w-8 h-8 flex items-center justify-center ${isPlaybackMuted ? "text-danger" : "text-white"}`}
+            className={`flex h-8 w-8 items-center justify-center rounded-full bg-black/50 ${isPlaybackMuted ? "text-rose-400" : "text-white"}`}
             onClick={() => setIsPlaybackMuted((prev) => !prev)}
           >
             {isPlaybackMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
