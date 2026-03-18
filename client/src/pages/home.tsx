@@ -1,21 +1,48 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { DEFAULT_LOCALE, normalizeLocale } from "@/i18n";
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { locale } = useParams<{ locale: string }>();
+  const { t } = useTranslation();
   const [roomInput, setRoomInput] = useState("");
+  const currentLocale = normalizeLocale(locale) ?? DEFAULT_LOCALE;
+
+  const withLocale = (path: string) => `/${currentLocale}${path}`;
+
+  const extractRoomId = (input: string) => {
+    const trimmedInput = input.trim();
+    if (!trimmedInput) return "";
+
+    try {
+      const parsedUrl = new URL(trimmedInput);
+      const pathSegments = parsedUrl.pathname.split("/").filter(Boolean);
+      const roomIndex = pathSegments.lastIndexOf("room");
+      if (roomIndex >= 0 && pathSegments[roomIndex + 1]) {
+        return pathSegments[roomIndex + 1];
+      }
+    } catch {
+      const pathSegments = trimmedInput.replace(/\/+$/, "").split("/").filter(Boolean);
+      const roomIndex = pathSegments.lastIndexOf("room");
+      if (roomIndex >= 0 && pathSegments[roomIndex + 1]) {
+        return pathSegments[roomIndex + 1];
+      }
+    }
+
+    return trimmedInput;
+  };
 
   const createRoom = () => {
     const roomId = crypto.randomUUID();
-    navigate(`/room/${roomId}`);
+    navigate(withLocale(`/room/${roomId}`));
   };
 
   const joinRoom = () => {
-    const trimmed = roomInput.trim();
-    if (trimmed) {
-      const match = trimmed.match(/\/room\/(.+)$/);
-      const roomId = match ? match[1] : trimmed;
-      navigate(`/room/${roomId}`);
+    const roomId = extractRoomId(roomInput);
+    if (roomId) {
+      navigate(withLocale(`/room/${roomId}`));
     }
   };
 
@@ -43,12 +70,12 @@ export default function HomePage() {
         </div>
 
         <h1 className="mb-2 bg-linear-to-r from-indigo-300 via-violet-300 to-blue-300 bg-clip-text text-3xl font-bold text-transparent">
-          WebRTC 会议
+          {t("home.title")}
         </h1>
         <p className="mb-7 text-sm leading-relaxed text-slate-300 sm:text-[15px]">
-          轻量音视频会议 —— 最多支持 4 人，
+          {t("home.subtitleLine1")}
           <br />
-          无需注册即可使用。
+          {t("home.subtitleLine2")}
         </p>
 
         {/* Create Button */}
@@ -58,19 +85,19 @@ export default function HomePage() {
           id="create-room-btn"
         >
           <span className="absolute inset-0 bg-linear-to-r from-white/10 via-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-          <span className="relative">✨ 创建新会议</span>
+          <span className="relative">✨ {t("home.createMeeting")}</span>
         </button>
 
         {/* Join Section */}
         <div className="mt-6 border-t border-white/10 pt-6">
           <p className="mb-3 text-xs text-slate-400">
-            或加入已有会议
+            {t("home.joinHint")}
           </p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
               className="h-11 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-4 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-indigo-400"
               type="text"
-              placeholder="粘贴房间链接或房间号"
+              placeholder={t("home.joinPlaceholder")}
               value={roomInput}
               onChange={(e) => setRoomInput(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -82,7 +109,7 @@ export default function HomePage() {
               disabled={!roomInput.trim()}
               id="join-room-btn"
             >
-              加入
+              {t("home.join")}
             </button>
           </div>
         </div>

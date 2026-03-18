@@ -12,10 +12,15 @@ import {
   VolumeX,
 } from "lucide-react";
 import { useStore } from "../_stores/useStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { DEFAULT_LOCALE, normalizeLocale } from "@/i18n";
 
 export default function ControlBar() {
   const navigate = useNavigate();
+  const { locale } = useParams<{ locale: string }>();
+  const { t } = useTranslation();
+  const currentLocale = normalizeLocale(locale) ?? DEFAULT_LOCALE;
   const toggleMute = useStore((state) => state.toggleMute);
   const toggleCamera = useStore((state) => state.toggleCamera);
   const toggleScreenShare = useStore((state) => state.toggleScreenShare);
@@ -37,7 +42,7 @@ export default function ControlBar() {
       <button
         className={`${baseButtonClass} ${!isMuted ? activeButtonClass : ""}`}
         onClick={() => toggleMute()}
-        title={isMuted ? "取消静音" : "静音"}
+        title={isMuted ? t("controls.unmute") : t("controls.mute")}
         id="toggle-mute-btn"
       >
         {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
@@ -45,7 +50,7 @@ export default function ControlBar() {
       <button
         className={`${baseButtonClass} ${!isCameraOff ? activeButtonClass : ""}`}
         onClick={() => toggleCamera()}
-        title={isCameraOff ? "开启摄像头" : "关闭摄像头"}
+        title={isCameraOff ? t("controls.turnOnCamera") : t("controls.turnOffCamera")}
         id="toggle-camera-btn"
       >
         {isCameraOff ? (
@@ -57,7 +62,7 @@ export default function ControlBar() {
       <button
         className={`${baseButtonClass} ${isScreenSharing ? activeButtonClass : ""}`}
         onClick={() => toggleScreenShare()}
-        title={isScreenSharing ? "停止共享屏幕" : "共享屏幕"}
+        title={isScreenSharing ? t("controls.stopShareScreen") : t("controls.shareScreen")}
         id="toggle-screen-share-btn"
       >
         {isScreenSharing ? (
@@ -69,7 +74,7 @@ export default function ControlBar() {
       <button
         className={`${baseButtonClass} ${isLocalVideoMirrored ? activeButtonClass : ""}`}
         onClick={() => toggleLocalVideoMirror()}
-        title={isLocalVideoMirrored ? "关闭镜像" : "开启镜像"}
+        title={isLocalVideoMirrored ? t("controls.disableMirror") : t("controls.enableMirror")}
         id="toggle-mirror-btn"
       >
         <FlipHorizontal2 className="w-5 h-5" />
@@ -77,7 +82,7 @@ export default function ControlBar() {
       <button
         className={`${baseButtonClass} ${allowEcho ? activeButtonClass : ""}`}
         onClick={() => toggleEcho()}
-        title={allowEcho ? "关闭回声" : "开启回声"}
+        title={allowEcho ? t("controls.disableEcho") : t("controls.enableEcho")}
         id="toggle-echo-btn"
       >
         {allowEcho ? (
@@ -89,16 +94,16 @@ export default function ControlBar() {
       <button
         className="flex h-11 items-center justify-center gap-1.5 rounded-full border border-slate-700 bg-slate-900 px-4 text-sm font-medium text-slate-100 transition hover:bg-slate-800 sm:h-13 sm:px-5"
         onClick={() => navigator.clipboard.writeText(window.location.href)}
-        title="复制会议链接"
+        title={t("controls.copyMeetingLink")}
         id="copy-link-btn"
       >
         <Link2 className="w-4 h-4" />{" "}
-        <span className="text-[13px]">复制链接</span>
+        <span className="text-[13px]">{t("controls.copyLink")}</span>
       </button>
       <button
         className="flex h-11 w-11 items-center justify-center rounded-full border border-rose-500 bg-rose-500 text-white transition hover:bg-rose-400 sm:h-13 sm:w-13"
-        onClick={() => navigate("/")}
-        title="离开会议"
+        onClick={() => navigate(`/${currentLocale}`)}
+        title={t("controls.leaveMeeting")}
         id="leave-room-btn"
       >
         <PhoneOff className="w-5 h-5" />

@@ -2,8 +2,10 @@ import { useRef, useEffect, useState } from "react";
 import { MicOff, Monitor, Video } from "lucide-react";
 import { useStore } from "../_stores/useStore";
 import { useShallow } from "zustand/react/shallow";
+import { useTranslation } from "react-i18next";
 
 export default function LocaleVideo() {
+  const { t } = useTranslation();
   const { name, isMuted, isCameraOff, isMirror, allowEcho } = useStore(
     useShallow((state) => ({
       name: state.name,
@@ -62,7 +64,8 @@ export default function LocaleVideo() {
       />
       <audio ref={localAudioRef} autoPlay muted={!allowEcho} playsInline />
       <span className="absolute bottom-3 left-3 rounded-full bg-black/60 px-3 py-1 text-xs font-medium tracking-wide text-white backdrop-blur">
-        {name}（你）
+        {name}
+        {t("video.selfSuffix")}
       </span>
       <button
         className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white"

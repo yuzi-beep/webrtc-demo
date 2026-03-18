@@ -10,6 +10,7 @@ import UserMetaEditor from "@/pages/room/_components/UserMetaEditor";
 import ControlBar from "@/pages/room/_components/ControlBar";
 import { useController } from "@/pages/room/_hooks/useController";
 import { useShallow } from "zustand/react/shallow";
+import { useTranslation } from "react-i18next";
 const gridClasses: Record<number, string> = {
   1: "grid-cols-1 grid-rows-1",
   2: "grid-cols-1 grid-rows-2 sm:grid-cols-2 sm:grid-rows-1",
@@ -18,6 +19,7 @@ const gridClasses: Record<number, string> = {
 };
 
 export default function RoomPage() {
+  const { t } = useTranslation();
   const { name, token, roomId, isConnected, memberMetaMap } = useStore(
     useShallow((state) => ({
       name: state.name,
@@ -44,14 +46,14 @@ export default function RoomPage() {
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-slate-950/95">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-700 border-t-indigo-400" />
           <p className="text-sm text-slate-300">
-            正在连接房间...
+            {t("room.connecting")}
           </p>
         </div>
       )}
       {/* Header */}
       <div className="flex flex-col gap-3 border-b border-slate-800 bg-slate-900/60 px-4 py-3 backdrop-blur md:flex-row md:items-center md:justify-between md:px-5">
         <span className="w-fit rounded-full border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-slate-300 sm:text-[13px]">
-          房间号：{displayRoomId}
+          {t("room.roomIdLabel", { roomId: displayRoomId })}
         </span>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <UserMetaEditor name={name} onSave={() => {}} />

@@ -1,6 +1,6 @@
-# WebRTC Demo
+# Rooma
 
-一个基于 **React + Vite + TypeScript**（前端）和 **NestJS + Socket.IO**（后端）的多人音视频会议示例项目。
+一个基于 **React + Vite + TypeScript**（前端）和 **NestJS + Socket.IO**（后端）的多人音视频会议项目。
 
 - 支持创建/加入房间
 - 最多 4 人同房间通话
@@ -10,7 +10,7 @@
 ## 项目结构
 
 ```txt
-webrtc-demo/
+rooma/
 ├── client/   # 前端（Vite + React + simple-peer）
 └── server/   # 信令服务（NestJS + Socket.IO）
 ```

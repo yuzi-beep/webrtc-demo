@@ -4,11 +4,13 @@ import { socketEvents, webrtcEvents } from "../_utils/event-bus";
 import { useStore } from "../_stores/useStore";
 import { useParams } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
+import { DEFAULT_LOCALE, normalizeLocale } from "@/i18n";
 
 export const useController = () => {
-  const { roomId } = useParams<{ roomId: string }>();
+  const { roomId, locale } = useParams<{ roomId: string; locale: string }>();
   const setState = useStore.setState;
   const navigate = useNavigate();
+  const currentLocale = normalizeLocale(locale) ?? DEFAULT_LOCALE;
 
   const { name, token, isMuted, isCameraOff } = useStore(
     useShallow((state) => ({
@@ -39,7 +41,7 @@ export const useController = () => {
         setState({ isConnected: true });
       }),
       socketEvents.on("DISCONNECTED", () => setState({ isConnected: false })),
-      socketEvents.on("ROOM_FULL", () => navigate("/")),
+      socketEvents.on("ROOM_FULL", () => navigate(`/${currentLocale}`)),
       webrtcEvents.on(
         "RECEIVE_SYNC_META",
         ({ name, isMuted, isCameraOff }, token) => {
@@ -58,5 +60,5 @@ export const useController = () => {
       ),
     ];
     return () => unsubs.forEach((off) => off());
-  }, [navigate, roomId, setState]);
+  }, [currentLocale, navigate, roomId, setState]);
 };
