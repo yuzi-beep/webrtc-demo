@@ -10,9 +10,6 @@ export function useMediaStream() {
   const isCameraOff = useStore((state) => state.isCameraOff);
   const isScreenSharing = useStore((state) => state.isScreenSharing);
   const getStream = useStore.getState().getStream;
-  const toggleMute = useStore((state) => state.toggleMute);
-  const toggleCamera = useStore((state) => state.toggleCamera);
-  const toggleScreenShare = useStore((state) => state.toggleScreenShare);
 
   useEffect(() => {
     webrtcEvents.send({
@@ -40,7 +37,7 @@ export function useMediaStream() {
             .getAudioTracks()
             .forEach((track) => stream.addTrack(track));
         } catch {
-          toggleMute(true);
+          useStore.setState({ isMuted: true });
         } finally {
           webrtcEvents.emit({ type: "REBIND_STREAM" });
         }
@@ -54,7 +51,7 @@ export function useMediaStream() {
         track.stop();
       });
     };
-  }, [isMuted, getStream, toggleMute]);
+  }, [isMuted, getStream]);
 
   useEffect(() => {
     let isEffectActive = true;
@@ -75,7 +72,7 @@ export function useMediaStream() {
             .getVideoTracks()
             .forEach((track) => stream.addTrack(track));
         } catch {
-          toggleCamera(true);
+          useStore.setState({ isCameraOff: true });
         } finally {
           webrtcEvents.emit({ type: "REBIND_STREAM" });
         }
@@ -89,7 +86,7 @@ export function useMediaStream() {
         track.stop();
       });
     };
-  }, [isCameraOff, getStream, toggleCamera]);
+  }, [isCameraOff, getStream]);
 
   useEffect(() => {
     let isEffectActive = true;
@@ -120,13 +117,17 @@ export function useMediaStream() {
         }
 
         screenOnlyStream.getVideoTracks().forEach((track) => {
-          track.addEventListener("ended", () => toggleScreenShare(false), {
-            once: true,
-          });
+          track.addEventListener(
+            "ended",
+            () => useStore.setState({ isScreenSharing: false }),
+            {
+              once: true,
+            },
+          );
           stream.addTrack(track);
         });
       } catch {
-        toggleScreenShare(false);
+        useStore.setState({ isScreenSharing: false });
       } finally {
         webrtcEvents.emit({ type: "REBIND_STREAM" });
       }
@@ -136,5 +137,5 @@ export function useMediaStream() {
       isEffectActive = false;
       removeAllTracks();
     };
-  }, [isScreenSharing, getStream, toggleScreenShare]);
+  }, [isScreenSharing, getStream]);
 }

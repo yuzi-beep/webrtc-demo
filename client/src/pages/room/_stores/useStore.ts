@@ -28,14 +28,6 @@ export type StoreState = Preferences & {
   >;
   streamsMap: Map<string, Record<MediaType, MediaStream | undefined>>;
 } & Record<MediaType, MediaStream> & {
-    setRoomId: (value?: string) => void;
-    setName: (nextName: string) => void;
-    setToken: (nextToken: string) => void;
-    toggleMute: (value?: boolean) => void;
-    toggleCamera: (value?: boolean) => void;
-    toggleScreenShare: (value?: boolean) => void;
-    toggleEcho: (value?: boolean) => void;
-    toggleLocalVideoMirror: (value?: boolean) => void;
     getStream: (type: MediaType) => MediaStream;
     clearMember: (token: string) => void;
   };
@@ -61,30 +53,6 @@ export const useStore = create<StoreState>()(
         microphone: new MediaStream(),
         screen: new MediaStream(),
         getStream: (type) => get()[type],
-        setName: (nextName) => set({ name: nextName }),
-        setRoomId: (value) => set({ roomId: value }),
-        setToken: (nextToken) => set({ token: nextToken }),
-        toggleMute: (value?: boolean) =>
-          set((state) => ({
-            isMuted: value !== undefined ? value : !state.isMuted,
-          })),
-        toggleCamera: (value?: boolean) =>
-          set((state) => ({
-            isCameraOff: value !== undefined ? value : !state.isCameraOff,
-          })),
-        toggleScreenShare: (value?: boolean) =>
-          set((state) => ({
-            isScreenSharing:
-              value !== undefined ? value : !state.isScreenSharing,
-          })),
-        toggleEcho: (value?: boolean) =>
-          set((state) => ({
-            allowEcho: value !== undefined ? value : !state.allowEcho,
-          })),
-        toggleLocalVideoMirror: () =>
-          set((state) => ({
-            isLocalVideoMirrored: !state.isLocalVideoMirrored,
-          })),
         clearMember: (token: string) =>
           set((state) => {
             state.memberMetaMap.delete(token);

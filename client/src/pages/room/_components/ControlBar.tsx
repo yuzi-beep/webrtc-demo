@@ -21,13 +21,6 @@ export default function ControlBar() {
   const { locale } = useParams<{ locale: string }>();
   const { t } = useTranslation();
   const currentLocale = normalizeLocale(locale) ?? DEFAULT_LOCALE;
-  const toggleMute = useStore((state) => state.toggleMute);
-  const toggleCamera = useStore((state) => state.toggleCamera);
-  const toggleScreenShare = useStore((state) => state.toggleScreenShare);
-  const toggleEcho = useStore((state) => state.toggleEcho);
-  const toggleLocalVideoMirror = useStore(
-    (state) => state.toggleLocalVideoMirror,
-  );
   const isMuted = useStore((state) => state.isMuted);
   const isCameraOff = useStore((state) => state.isCameraOff);
   const isScreenSharing = useStore((state) => state.isScreenSharing);
@@ -41,7 +34,9 @@ export default function ControlBar() {
     <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-800 bg-slate-900/70 px-3 py-3 backdrop-blur sm:gap-3 sm:px-5 sm:py-4">
       <button
         className={`${baseButtonClass} ${!isMuted ? activeButtonClass : ""}`}
-        onClick={() => toggleMute()}
+        onClick={() =>
+          useStore.setState((state) => ({ isMuted: !state.isMuted }))
+        }
         title={isMuted ? t("controls.unmute") : t("controls.mute")}
         id="toggle-mute-btn"
       >
@@ -49,7 +44,9 @@ export default function ControlBar() {
       </button>
       <button
         className={`${baseButtonClass} ${!isCameraOff ? activeButtonClass : ""}`}
-        onClick={() => toggleCamera()}
+        onClick={() =>
+          useStore.setState((state) => ({ isCameraOff: !state.isCameraOff }))
+        }
         title={isCameraOff ? t("controls.turnOnCamera") : t("controls.turnOffCamera")}
         id="toggle-camera-btn"
       >
@@ -61,7 +58,11 @@ export default function ControlBar() {
       </button>
       <button
         className={`${baseButtonClass} ${isScreenSharing ? activeButtonClass : ""}`}
-        onClick={() => toggleScreenShare()}
+        onClick={() =>
+          useStore.setState((state) => ({
+            isScreenSharing: !state.isScreenSharing,
+          }))
+        }
         title={isScreenSharing ? t("controls.stopShareScreen") : t("controls.shareScreen")}
         id="toggle-screen-share-btn"
       >
@@ -73,7 +74,11 @@ export default function ControlBar() {
       </button>
       <button
         className={`${baseButtonClass} ${isLocalVideoMirrored ? activeButtonClass : ""}`}
-        onClick={() => toggleLocalVideoMirror()}
+        onClick={() =>
+          useStore.setState((state) => ({
+            isLocalVideoMirrored: !state.isLocalVideoMirrored,
+          }))
+        }
         title={isLocalVideoMirrored ? t("controls.disableMirror") : t("controls.enableMirror")}
         id="toggle-mirror-btn"
       >
@@ -81,7 +86,9 @@ export default function ControlBar() {
       </button>
       <button
         className={`${baseButtonClass} ${allowEcho ? activeButtonClass : ""}`}
-        onClick={() => toggleEcho()}
+        onClick={() =>
+          useStore.setState((state) => ({ allowEcho: !state.allowEcho }))
+        }
         title={allowEcho ? t("controls.disableEcho") : t("controls.enableEcho")}
         id="toggle-echo-btn"
       >
