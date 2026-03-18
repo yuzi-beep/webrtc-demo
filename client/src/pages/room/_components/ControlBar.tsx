@@ -26,14 +26,17 @@ export default function ControlBar() {
   const isScreenSharing = useStore((state) => state.isScreenSharing);
   const isLocalVideoMirrored = useStore((state) => state.isLocalVideoMirrored);
   const allowEcho = useStore((state) => state.allowEcho);
-  const baseButtonClass =
-    "flex h-11 w-11 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-100 transition hover:bg-slate-800 sm:h-13 sm:w-13";
-  const activeButtonClass = "border-indigo-400 bg-indigo-500/20 text-indigo-200";
+  const getToggleButtonClass = (isActive: boolean) =>
+    `flex h-11 w-11 items-center justify-center rounded-full border transition sm:h-13 sm:w-13 ${
+      isActive
+        ? "border-indigo-400 bg-indigo-500/20 text-indigo-200"
+        : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
+    }`;
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-800 bg-slate-900/70 px-3 py-3 backdrop-blur sm:gap-3 sm:px-5 sm:py-4">
       <button
-        className={`${baseButtonClass} ${!isMuted ? activeButtonClass : ""}`}
+        className={getToggleButtonClass(!isMuted)}
         onClick={() =>
           useStore.setState((state) => ({ isMuted: !state.isMuted }))
         }
@@ -43,7 +46,7 @@ export default function ControlBar() {
         {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
       </button>
       <button
-        className={`${baseButtonClass} ${!isCameraOff ? activeButtonClass : ""}`}
+        className={getToggleButtonClass(!isCameraOff)}
         onClick={() =>
           useStore.setState((state) => ({ isCameraOff: !state.isCameraOff }))
         }
@@ -57,7 +60,7 @@ export default function ControlBar() {
         )}
       </button>
       <button
-        className={`${baseButtonClass} ${isScreenSharing ? activeButtonClass : ""}`}
+        className={getToggleButtonClass(isScreenSharing)}
         onClick={() =>
           useStore.setState((state) => ({
             isScreenSharing: !state.isScreenSharing,
@@ -73,7 +76,7 @@ export default function ControlBar() {
         )}
       </button>
       <button
-        className={`${baseButtonClass} ${isLocalVideoMirrored ? activeButtonClass : ""}`}
+        className={getToggleButtonClass(isLocalVideoMirrored)}
         onClick={() =>
           useStore.setState((state) => ({
             isLocalVideoMirrored: !state.isLocalVideoMirrored,
@@ -85,7 +88,7 @@ export default function ControlBar() {
         <FlipHorizontal2 className="w-5 h-5" />
       </button>
       <button
-        className={`${baseButtonClass} ${allowEcho ? activeButtonClass : ""}`}
+        className={getToggleButtonClass(allowEcho)}
         onClick={() =>
           useStore.setState((state) => ({ allowEcho: !state.allowEcho }))
         }
