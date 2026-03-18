@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { DEFAULT_LOCALE, normalizeLocale } from "@/i18n";
+import { Plus, Video } from "lucide-react";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ export default function HomePage() {
       <div className="relative z-10 w-full max-w-md rounded-3xl border border-white/10 bg-slate-900/70 p-6 text-center shadow-2xl backdrop-blur-xl sm:p-8">
         {/* Logo */}
         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-500 via-violet-500 to-blue-500 text-3xl shadow-lg shadow-indigo-500/30">
-          📹
+          <Video className="h-8 w-8 text-white" />
         </div>
 
         <h1 className="mb-2 bg-linear-to-r from-indigo-300 via-violet-300 to-blue-300 bg-clip-text text-3xl font-bold text-transparent">
@@ -85,7 +86,10 @@ export default function HomePage() {
           id="create-room-btn"
         >
           <span className="absolute inset-0 bg-linear-to-r from-white/10 via-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-          <span className="relative">✨ {t("home.createMeeting")}</span>
+          <span className="relative inline-flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            {t("home.createMeeting")}
+          </span>
         </button>
 
         {/* Join Section */}
