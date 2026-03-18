@@ -18,6 +18,7 @@ import i18n, {
 import HomePage from './pages/home';
 import RoomPage from './pages/room';
 import { useEffect } from 'react';
+import LanguageToggle from './components/LanguageToggle';
 
 export function LocaleLayout() {
   const { locale } = useParams<{ locale: string }>();
@@ -46,7 +47,12 @@ export function LocaleLayout() {
     );
   }
 
-  return <Outlet />;
+  return (
+    <>
+      <LanguageToggle />
+      <Outlet />
+    </>
+  );
 }
 
 export function LocaleRootRedirect() {
